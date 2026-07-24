@@ -5,9 +5,29 @@ import Header from "@/components/Header";
 import StatsAndFilter from "@/components/StatsAndFilter";
 import TaskList from "@/components/TaskList";
 import TaskListPagination from "@/components/TaskListPagination";
-import React from "react";
+import React, { useEffect, useState } from "react";
+import { toast } from "sonner";
+import axios from "axios";
 
 const HomePage = () => {
+  const [taskBuffer,setTaskBuffer] = useState([]);
+
+  useEffect(()=> { 
+    fetchTasks();
+  }, [])
+
+  const fetchTasks = async () => {
+    try {
+      const res = await axios.get("http://localhost:5001/api/tasks");
+      setTaskBuffer(res.data);
+      console.log(res.data);
+
+    } catch (error) {
+      console.error("Lỗi xảy ra khi truy xuất tasks:", error);
+      toast.error("Lỗi xảy ra khi truy xuất tasks.");
+    }
+  };
+  
   return (
     <div className="min-h-screen w-full bg-white relative overflow-hidden">
       {/* Soft Blue Radial Background */}
@@ -33,7 +53,7 @@ const HomePage = () => {
           <StatsAndFilter />
 
           {/* Danh sách nhiệm vụ */}
-          <TaskList />
+          <TaskList filteredTasks={taskBuffer}/>
 
           {/* Phân trang và lọc theo Date  */}
           <div className="flex flex-col items-center justify-between gap-6 sm:flex-row">
