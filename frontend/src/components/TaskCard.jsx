@@ -65,7 +65,7 @@ const TaskCard = ({ task, index }) => {
           {/* ngày tạo và ngày hoàn thành */}
           <div className="flex items-center gap-2 mt-1">
             <Calendar className="size-3 text-muted-foreground" />
-            <span>{new Date(task.createAt).toLocaleString()}</span>
+            <span>{new Date(task.createdAt).toLocaleString()}</span>
             {task.completedAt && (
               <>
                 <span className="text-xs text-muted-foreground"> - </span>

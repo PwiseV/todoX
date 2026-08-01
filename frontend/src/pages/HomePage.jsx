@@ -10,14 +10,15 @@ import { toast } from "sonner";
 import axios from "axios";
 
 const HomePage = () => {
-  const [taskBuffer,setTaskBuffer] = useState([]);
+  const [taskBuffer, setTaskBuffer] = useState([]);
   const [activeTaskCount, setActiveTaskCount] = useState(0);
   const [completeTaskCount, setCompleteTaskCount] = useState(0);
-
-  useEffect(()=> {
+  const [filter, setFilter] = useState("all");
+  useEffect(() => {
     fetchTasks();
-  }, [])
+  }, []);
 
+  // logic
   const fetchTasks = async () => {
     try {
       const res = await axios.get("http://localhost:5001/api/tasks");
@@ -29,7 +30,23 @@ const HomePage = () => {
       toast.error("Lỗi xảy ra khi truy xuất tasks.");
     }
   };
-  
+
+  const handleTaskChanged = () =>{
+    fetchTasks();
+  }
+
+  // biến
+  const filteredTasks = taskBuffer.filter((task) => {
+    switch (filter) {
+      case "active":
+        return task.status === "active";
+      case "completed":
+        return task.status === "complete";
+      default:
+        return true;
+    }
+  });
+
   return (
     <div className="min-h-screen w-full bg-white relative overflow-hidden">
       {/* Soft Blue Radial Background */}
@@ -49,16 +66,18 @@ const HomePage = () => {
           <Header />
 
           {/*  Tạo nhiệm vụ */}
-          <AddTask />
+          <AddTask handleNewTaskAdded={handleTaskChanged} />
 
           {/* Thống kê và bộ lọc */}
           <StatsAndFilter
+            filter={filter}
+            setFilter={setFilter}
             activeTasksCount={activeTaskCount}
             completedTasksCount={completeTaskCount}
           />
 
           {/* Danh sách nhiệm vụ */}
-          <TaskList filteredTasks={taskBuffer}/>
+          <TaskList filteredTasks={filteredTasks} filter={filter} />
 
           {/* Phân trang và lọc theo Date  */}
           <div className="flex flex-col items-center justify-between gap-6 sm:flex-row">
@@ -67,7 +86,7 @@ const HomePage = () => {
           </div>
 
           {/* Chân trang */}
-          <Footer 
+          <Footer
             activeTasksCount={activeTaskCount}
             completedTasksCount={completeTaskCount}
           />
