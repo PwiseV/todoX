@@ -11,17 +11,19 @@ import axios from "axios";
 
 const HomePage = () => {
   const [taskBuffer,setTaskBuffer] = useState([]);
+  const [activeTaskCount, setActiveTaskCount] = useState(0);
+  const [completeTaskCount, setCompleteTaskCount] = useState(0);
 
-  useEffect(()=> { 
+  useEffect(()=> {
     fetchTasks();
   }, [])
 
   const fetchTasks = async () => {
     try {
       const res = await axios.get("http://localhost:5001/api/tasks");
-      setTaskBuffer(res.data);
-      console.log(res.data);
-
+      setTaskBuffer(res.data.tasks);
+      setActiveTaskCount(res.data.activeCount);
+      setCompleteTaskCount(res.data.completeCount);
     } catch (error) {
       console.error("Lỗi xảy ra khi truy xuất tasks:", error);
       toast.error("Lỗi xảy ra khi truy xuất tasks.");
@@ -50,7 +52,10 @@ const HomePage = () => {
           <AddTask />
 
           {/* Thống kê và bộ lọc */}
-          <StatsAndFilter />
+          <StatsAndFilter
+            activeTasksCount={activeTaskCount}
+            completedTasksCount={completeTaskCount}
+          />
 
           {/* Danh sách nhiệm vụ */}
           <TaskList filteredTasks={taskBuffer}/>
@@ -62,7 +67,10 @@ const HomePage = () => {
           </div>
 
           {/* Chân trang */}
-          <Footer />
+          <Footer 
+            activeTasksCount={activeTaskCount}
+            completedTasksCount={completeTaskCount}
+          />
         </div>
       </div>
     </div>

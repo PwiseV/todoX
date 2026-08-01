@@ -5,7 +5,7 @@ import TaskCard from "./TaskCard";
 const TaskList = ({ filteredTasks }) => {
   let filter = "all";
 
-  if (!filteredTasks || filteredTasks.length === 0) {
+  if (!Array.isArray(filteredTasks) || filteredTasks.length === 0) {
     return <TaskEmptyState filter={filter} />;
   }
 
