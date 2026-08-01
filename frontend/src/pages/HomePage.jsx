@@ -7,7 +7,7 @@ import TaskList from "@/components/TaskList";
 import TaskListPagination from "@/components/TaskListPagination";
 import React, { useEffect, useState } from "react";
 import { toast } from "sonner";
-import axios from "axios";
+import api from "@/lib/axios";
 
 const HomePage = () => {
   const [taskBuffer, setTaskBuffer] = useState([]);
@@ -21,7 +21,7 @@ const HomePage = () => {
   // logic
   const fetchTasks = async () => {
     try {
-      const res = await axios.get("http://localhost:5001/api/tasks");
+      const res = await api.get("/tasks");
       setTaskBuffer(res.data.tasks);
       setActiveTaskCount(res.data.activeCount);
       setCompleteTaskCount(res.data.completeCount);
@@ -77,7 +77,11 @@ const HomePage = () => {
           />
 
           {/* Danh sách nhiệm vụ */}
-          <TaskList filteredTasks={filteredTasks} filter={filter} />
+          <TaskList 
+            filteredTasks={filteredTasks} 
+            filter={filter} 
+            handleTaskChanged={handleTaskChanged}
+          />
 
           {/* Phân trang và lọc theo Date  */}
           <div className="flex flex-col items-center justify-between gap-6 sm:flex-row">
