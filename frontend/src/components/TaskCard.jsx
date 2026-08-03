@@ -59,6 +59,31 @@ const TaskCard = ({ task, index, handleTaskChanged }) => {
     }
   };
 
+  const toggleTaskCompleteButton = async () => {
+    try {
+      if(task.status === "active"){
+        await api.put(`tasks/${task._id}`, {
+          status: 'complete',
+          completedAt: new Date().toISOString(),
+        });
+
+        toast.success(`${task.title} đã hoàn thành`)
+      } else {
+        await api.put(`tasks/${task._id}`, {
+          status: 'active',
+          completedAt: null
+        })
+
+        toast.success(`${task.title} đã được dời sang đang làm`)
+      }
+
+      handleTaskChanged();
+    } catch (error) {
+      console.error("Lỗi xảy ra khi update task.", error);
+      toast.error("Lỗi xảy ra khi cập nhập nhiệm vụ.");
+    }
+  }
+
   return (
     <Card
       className={cn(
@@ -78,6 +103,7 @@ const TaskCard = ({ task, index, handleTaskChanged }) => {
               ? "text-success hover:text-success/80"
               : "text-muted-foreground hover:text-primary",
           )}
+          onClick={toggleTaskCompleteButton }
         >
           {task.status === "complete" ? (
             <CheckCircle2 className="size-5" />
@@ -115,7 +141,9 @@ const TaskCard = ({ task, index, handleTaskChanged }) => {
           {/* ngày tạo và ngày hoàn thành */}
           <div className="flex items-center gap-2 mt-1">
             <Calendar className="size-3 text-muted-foreground" />
-            <span>{new Date(task.createdAt).toLocaleString()}</span>
+            <span className="text-xs text-muted-foreground">
+              {new Date(task.createdAt).toLocaleString()}
+            </span>
             {task.completedAt && (
               <>
                 <span className="text-xs text-muted-foreground"> - </span>
