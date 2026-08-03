@@ -15,7 +15,7 @@ import { toast } from "sonner";
 
 const TaskCard = ({ task, index, handleTaskChanged }) => {
   const [isEditing, setIsEditing] = useState(false);
-  const [updateTaskTitle, setUpdateTaskTitle] = useState(task.title || "")
+  const [updateTaskTitle, setUpdateTaskTitle] = useState(task.title || "");
 
   const deleteTask = async (taskId) => {
     try {
@@ -26,25 +26,36 @@ const TaskCard = ({ task, index, handleTaskChanged }) => {
       console.error("Lỗi xảy ra khi xóa task.", error);
       toast.error("Lỗi xảy ra khi xóa nhiệm vụ.");
     }
-  }
+  };
 
   const updateTask = async () => {
-    try {
-      setIsEditing(false);
-      await api.put(`/tasks/${task._id}`, {
-        title: updateTaskTitle
-      });
-      toast.success(`Nhiệm vụ đã đổi thành ${updateTaskTitle}`);
-      handleTaskChanged();
-    } catch (error) {
-      console.error("Lỗi xảy ra khi update task.", error);
-      toast.error("Lỗi xảy ra khi cập nhật nhiệm vụ.");
+    if (updateTaskTitle.trim()) {
+      try {
+        setIsEditing(false);
+        await api.put(`/tasks/${task._id}`, {
+          title: updateTaskTitle,
+        });
+        toast.success(`Nhiệm vụ đã đổi thành ${updateTaskTitle}`);
+        handleTaskChanged();
+      } catch (error) {
+        console.error("Lỗi xảy ra khi update task.", error);
+        toast.error("Lỗi xảy ra khi cập nhật nhiệm vụ.");
+      }
+    }else{
+      toast.error("Bạn không được để trống nội dung nhiệm vụ :( ");
     }
-  }
+  };
 
-  const handleKeyPress = (event) => {
-    if (event.key === "Enter") {
+  const cancelEdit = () => {
+    setIsEditing(false);
+    setUpdateTaskTitle(task.title || "");
+  };
+
+  const handleKeyDown = (event) => {
+  if (event.key === "Enter") {
       updateTask();
+    } else if (event.key === "Escape") {
+      cancelEdit();
     }
   };
 
@@ -79,16 +90,14 @@ const TaskCard = ({ task, index, handleTaskChanged }) => {
         <div className="flex-1 min-w-0">
           {isEditing ? (
             <Input
+              autoFocus
               placeholder="Cần phải làm gì?"
               className="flex-1 h-12 text-base border-border/50 focus:border-primary/50 focus:ring-primary/20"
               type="text"
               value={updateTaskTitle}
-              onChange = {(e) => setUpdateTaskTitle(e.target.value)}
-              onKeyPress = {handleKeyPress}
-              onBlur = {() => {
-                setIsEditing(false)
-                setUpdateTaskTitle(task.title || "")
-              }}
+              onChange={(e) => setUpdateTaskTitle(e.target.value)}
+              onKeyDown={handleKeyDown}
+              onBlur={cancelEdit}
             />
           ) : (
             <p
@@ -126,9 +135,9 @@ const TaskCard = ({ task, index, handleTaskChanged }) => {
             variant="ghost"
             size="icon"
             className="flex-shrink-0 transition-colors size-8 text-muted-foreground hover:text-info"
-            onClick={()=> {
+            onClick={() => {
               setIsEditing(true);
-              setUpdateTaskTitle(task.title || "")
+              setUpdateTaskTitle(task.title || "");
             }}
           >
             <SquarePen className="size-4" />
@@ -139,7 +148,7 @@ const TaskCard = ({ task, index, handleTaskChanged }) => {
             variant="ghost"
             size="icon"
             className="flex-shrink-0 transition-colors size-8 text-muted-foreground hover:text-destructive"
-            onClick = {() => deleteTask(task._id)}
+            onClick={() => deleteTask(task._id)}
           >
             <Trash2 className="size-4" />
           </Button>

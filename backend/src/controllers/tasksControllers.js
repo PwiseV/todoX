@@ -39,25 +39,42 @@ export const createTask = async (req, res) => {
 export const updateTask = async (req,res) => {
     try {
         const {title , status , completedAt} = req.body;
-        const updatedTask = await Task.findByIdAndUpdate(
-            req.params.id,
-            {
-                title,
-                status,
-                completedAt
-            },
-            { new : true }
-        );
 
-        if(!updatedTask){
-            return res.status(404).json({message: "Nhiệm vụ không tồn tại"})
+        if (title !== undefined) {
+            // typeof loại luôn null, số, object... mọi thứ không phải chuỗi
+            if (typeof title !== "string" || title.trim() === "") {
+                return res
+                    .status(400)
+                    .json({ message: "Tiêu đề nhiệm vụ không được để trống" });
+            }
         }
 
+        // Chỉ đưa vào bản cập nhật những trường client thực sự gửi lên
+        const updates = {};
+        if (title !== undefined) updates.title = title.trim();
+        if (status !== undefined) updates.status = status;
+        if (completedAt !== undefined) updates.completedAt = completedAt;
+
+        const updatedTask = await Task.findByIdAndUpdate(
+            req.params.id,
+            updates,
+            { returnDocument: "after", runValidators: true }
+        );
+
+        if(!updatedTask ){
+            return res.status(404).json({message: "Nhiệm vụ không tồn tại"})
+        }
+        
         res.status(200).json(updatedTask);
 
     } catch (error) {
-        console.error("Lỗi khi gọi updateTask!",error);
-        res.status(500).json({ message : "Lỗi hệ thống"});
+        if (error.name === "ValidationError") {
+            return res
+                .status(400)
+                .json({ message: "Dữ liệu nhiệm vụ không hợp lệ" });
+        }
+        console.error("Lỗi khi gọi updateTask!", error);
+        res.status(500).json({ message: "Lỗi hệ thống" });
     }
 };
 
