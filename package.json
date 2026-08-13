@@ -1,0 +1,13 @@
+{
+  "name": "todox",
+  "version": "1.0.0",
+  "private": true,
+  "description": "TodoX - build frontend rồi để backend phục vụ luôn, chạy trên một service Render duy nhất",
+  "scripts": {
+    "build": "npm install --prefix backend && npm install --include=dev --prefix frontend && npm run build --prefix frontend",
+    "start": "npm run start --prefix backend"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+}

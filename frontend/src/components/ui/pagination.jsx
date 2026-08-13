@@ -36,6 +36,8 @@ function PaginationItem({
   return <li data-slot="pagination-item" {...props} />;
 }
 
+// Đã sửa cho khớp với button.jsx của dự án (bản Radix cũ, không có render/nativeButton).
+// Render thẳng <button> thay vì <a> - đúng hơn cho SPA vì không cần href.
 function PaginationLink({
   className,
   isActive,
@@ -47,14 +49,10 @@ function PaginationLink({
       variant={isActive ? "outline" : "ghost"}
       size={size}
       className={cn(className)}
-      nativeButton={false}
-      render={
-        <a
-          aria-current={isActive ? "page" : undefined}
-          data-slot="pagination-link"
-          data-active={isActive}
-          {...props} />
-      } />
+      aria-current={isActive ? "page" : undefined}
+      data-slot="pagination-link"
+      data-active={isActive}
+      {...props} />
   );
 }
 
