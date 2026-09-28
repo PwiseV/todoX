@@ -34,13 +34,21 @@ than technology debates.
 Routes, HTTP methods, query parameters, JSON field names (including `_id`
 and `__v`), status values, and success response shapes MUST match
 `docs/api-contract.md`. The existing `frontend/` MUST work against the new
-backend **without any frontend code change**. Known defects listed in
-`docs/api-contract.md` §5 MAY be fixed only if the frontend does not depend
-on them; every such deviation MUST first be recorded in a new §6
-"Intentional Deviations" of `docs/api-contract.md`.
+backend **without any frontend code change**.
+
+Authorized deviations from the original Node/Mongoose behavior are recorded
+in `docs/api-contract.md` §6 "Intentional Deviations". Currently authorized:
+UUID string `_id` (replacing MongoDB ObjectId), and `__v` always `0`. Any
+new deviation MUST be recorded in §6 before code changes land.
+
+Behavioral quirks listed in `docs/api-contract.md` §7 "Deferred Fixes" are
+PRESERVED as-is until the frontend runs end-to-end on the new backend.
+Afterwards, each deferred fix MUST be recorded in §6 before the
+corresponding code change is made.
 
 **Rationale**: The frontend is the acceptance test. A rewrite that requires
 FE changes defeats the point of the exercise and hides behavioral drift.
+Explicit §6/§7 tracking makes every deviation intentional and reversible.
 
 ### IV. Test-First for Business Rules (NON-NEGOTIABLE)
 
@@ -143,4 +151,4 @@ immediately-following commit.
 Runtime development guidance lives in `docs/api-contract.md` (contract
 truth) and the plan/tasks artifacts produced by Spec Kit commands.
 
-**Version**: 1.0.0 | **Ratified**: 2026-09-26 | **Last Amended**: 2026-09-26
+**Version**: 1.1.0 | **Ratified**: 2026-09-26 | **Last Amended**: 2026-09-28
