@@ -59,7 +59,7 @@ Rewrite the todoX backend as an ASP.NET Core 10 Web API (controllers, EF Core + 
 | `xunit` | 2.x | Sole approved test framework (constitution §Technology Stack) |
 | `xunit.runner.visualstudio` | 2.x | Test runner adapter for VS/Rider and `dotnet test` |
 | `Microsoft.NET.Test.Sdk` | latest | .NET test platform SDK; required for `dotnet test` to discover xUnit tests |
-| `Testcontainers.PostgreSql` | 3.x | Starts a real PostgreSQL instance per test session; integration tests run against the same DB engine as production |
+| `Testcontainers.PostgreSql` | 4.x (4.15.0) | Starts a real PostgreSQL instance per test session; integration tests run against the same DB engine as production. Amended 2026-09-30 from 3.x: 3.10.0 (latest 3.x) depends on SSH.NET 2023.0.0 with high-severity advisories GHSA-mggc-4xg6-vcxf and GHSA-q939-rpr3-3284 (NuGet NU1903); 4.15.0 depends on the fixed SSH.NET 2026.0.0 |
 | `Microsoft.AspNetCore.Mvc.Testing` | 10.x | `WebApplicationFactory<Program>` tests the full request pipeline in-process without a network round-trip |
 | `Microsoft.Extensions.TimeProvider.Testing` | 10.10.0 (latest stable on NuGet as of 2026-09-30; versions independently of the .NET runtime) | Provides `FakeTimeProvider` (namespace `Microsoft.Extensions.Time.Testing`) used to control the injected `TimeProvider` in tests; advances the clock between task creations for DF-04 mitigation |
 
