@@ -90,7 +90,7 @@ description: "Task list for the .NET backend rewrite of todoX"
 
 ### Wire DTO and composition root
 
-- [ ] T017 [P] Create `backend-dotnet/TodoX.Api/DTOs/TaskResponseDto.cs` with the data-model.md field table:
+- [X] T017 [P] Create `backend-dotnet/TodoX.Api/DTOs/TaskResponseDto.cs` with the data-model.md field table:
   - `[JsonPropertyName("_id")] string Id`, filled from `entity.Id.ToString()` (lowercase hyphenated UUID)
   - `Title`, `Status`, `DateTime? CompletedAt`, `DateTime CreatedAt`, `DateTime UpdatedAt`
   - `[JsonPropertyName("__v")] int V`, always the constant `0`
