@@ -28,7 +28,7 @@ Rewrite the todoX backend as an ASP.NET Core 10 Web API (controllers, EF Core + 
 
 ## Constitution Check
 
-*Constitution v1.1.0 — evaluated pre-design.*
+*Constitution v1.2.0 — evaluated pre-design.*
 
 | Principle | Requirement | Status |
 |-----------|-------------|--------|
@@ -89,7 +89,7 @@ Rewrite the todoX backend as an ASP.NET Core 10 Web API (controllers, EF Core + 
 
 This is the only field that requires this treatment. `Title` and `Status` follow the conventional `string?` pattern (null = absent = ignore).
 
-**Testing**: Send `PUT { "status": "active", "completedAt": null }` → verify completedAt cleared. Send `PUT { "title": "x" }` → verify completedAt unchanged.
+**Testing**: Send `PUT { "status": "active", "completedAt": null }` → verify completedAt cleared. Complete a task with a non-null `completedAt` (`PUT { "status": "complete", "completedAt": "2026-09-28T03:00:00.000Z" }`), then send a rename-only `PUT { "title": "x" }` → verify `completedAt` is unchanged (still the non-null value; matches tasks.md T032 `PutTask_RenameOnly_LeavesCompletedAtUnchanged`).
 
 ### 2. DF-01 — POST blank title → 500 despite `[ApiController]`
 
@@ -257,7 +257,7 @@ backend-dotnet/
 │   ├── Entities/
 │   │   └── TaskEntity.cs                EF Core entity; Guid PK
 │   ├── Services/
-│   │   ├── ITaskService.cs              service contract + TaskUpdate record
+│   │   ├── ITaskService.cs              service contract + TaskUpdate and TaskListResult records
 │   │   ├── TaskService.cs               business logic, EF queries
 │   │   ├── StatusFilter.cs              filter → status mapping ("completed" → "complete")
 │   │   └── Pagination.cs                page/limit parsing (parseInt parity, DF-05), skip, totalPages

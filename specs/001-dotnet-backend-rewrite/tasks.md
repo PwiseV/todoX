@@ -245,7 +245,7 @@ description: "Task list for the .NET backend rewrite of todoX"
 ### Date range calculator (api-contract §4.1, FR-009, FR-014)
 
 - [ ] T036 [P] [US2] **Test first**: write `backend-dotnet/TodoX.Tests/Unit/DateRangeCalculatorTests.cs`, using `FakeTimeProvider` and the zone from `DateRangeCalculator.ResolveTimeZone(null)`:
-  - `TimeZone_AsiaHoChiMinh_Resolves`: `FindSystemTimeZoneById("Asia/Ho_Chi_Minh")` does not throw. This runs first.
+  - `TimeZone_AsiaHoChiMinh_Resolves`: `FindSystemTimeZoneById("Asia/Ho_Chi_Minh")` does not throw. This runs first. Environment sanity check - exempt from the red/Constitution IV requirement (it verifies runtime tzdata, not project code).
   - `ResolveTimeZone_UsesTzEnvValue_WhenSet`: `ResolveTimeZone("UTC")` returns the UTC zone.
   - `ResolveTimeZone_DefaultsToHcm_WhenNullOrEmpty`
   - `Today_StartsAtMidnightHcm`: now `2026-09-30T05:00:00Z` (Wed 12:00 ICT) gives start `2026-09-29T17:00:00Z`.
@@ -302,7 +302,7 @@ description: "Task list for the .NET backend rewrite of todoX"
   - `GetTasks_ResponseShape`: all seven top-level keys are present.
 
   The tests must run red. Depends on T037, T039, T041, T042.
-- [ ] T044 [US2] Add `Task<TaskListResult> GetTasksAsync(string? dateQuery, string? filter, string? page, string? limit)` to `backend-dotnet/TodoX.Api/Services/ITaskService.cs` and implement it in `backend-dotnet/TodoX.Api/Services/TaskService.cs` (inject `DateRangeCalculator`). Queries follow research.md R-07 and are **awaited sequentially**, never with `Task.WhenAll`:
+- [ ] T044 [US2] Add `Task<TaskListResult> GetTasksAsync(string? dateQuery, string? filter, string? page, string? limit)` to `backend-dotnet/TodoX.Api/Services/ITaskService.cs` and implement it in `backend-dotnet/TodoX.Api/Services/TaskService.cs` (inject `DateRangeCalculator`). Define `record TaskListResult(List<TaskEntity> Tasks, int TotalCount, int ActiveCount, int CompleteCount, int TotalPages, int Page, int Limit)` in `backend-dotnet/TodoX.Api/Services/ITaskService.cs`. Queries follow research.md R-07 and are **awaited sequentially**, never with `Task.WhenAll`:
   - `base` = `Tasks` filtered by `CreatedAt >= start` when the start date is non-null; there is no end bound
   - `filtered` = `base` filtered by `Status == mapped` when the mapped status is non-null
   - page = `filtered.OrderBy(t => t.Status == "active" ? 0 : 1).ThenByDescending(t => t.CreatedAt).Skip(skip).Take(limit)`
@@ -326,7 +326,7 @@ description: "Task list for the .NET backend rewrite of todoX"
   - `GetTasks_Counts_IndependentOfFilter`: 3 active and 5 complete today. For `filter` in `all`, `active`, `completed`, `foo`, every response has `activeCount == 3` and `completeCount == 5`.
   - `GetTasks_Counts_RespectDateQuery`: tasks older than today are excluded from the counts under `dateQuery=today` and included under `dateQuery=all`.
   - `GetTasks_Counts_AllRange_IncludesEverything`
-  - `GetTasks_Counts_EmptyRange_AreZero_TotalPagesOne`
+  - `GetTasks_Counts_ZeroInOneRange_NonZeroInAnother`: seed active and complete tasks only outside "today". Assert `activeCount == 0` and `completeCount == 0` for `dateQuery=today`, and both non-zero for `dateQuery=all`.
 
   The tests must run red, because T044 returns the placeholder `0`. Depends on T045.
 - [ ] T047 [US3] Replace the placeholder in `backend-dotnet/TodoX.Api/Services/TaskService.cs` `GetTasksAsync` with `activeCount = await base.CountAsync(t => t.Status == "active")` and `completeCount = await base.CountAsync(t => t.Status == "complete")`. Both run on the **date-filtered base**, not `filtered`, awaited sequentially after the page and total queries. T046 turns green. Depends on T046.
@@ -433,6 +433,8 @@ Task: T050 quickstart.md bootstrap fix
 1. Add US2: the frontend lists, filters, and paginates, with badges at 0. This is the first point where a partial frontend check is possible.
 2. Add US3: badges are correct. Run the full V-08 frontend end-to-end check (T053).
 3. Polish: performance, docs, and the compliance audit.
+
+**Policy**: the `dotnet-backend` branch is not merged into `main` until T053 (frontend end-to-end check) passes. Commits to `dotnet-backend` during US1/US2 are normal feature-branch commits, not merges, so Principle III's pre-merge frontend check is not yet triggered.
 
 ---
 

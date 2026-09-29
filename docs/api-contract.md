@@ -95,7 +95,7 @@ Lấy danh sách task kèm số đếm và phân trang.
 | `dateQuery` | string | (không lọc) | `today` \| `week` \| `month` \| `all` \| khác | Bất kỳ giá trị nào khác 3 giá trị đầu đều được coi là "không lọc theo ngày" |
 | `filter` | string | (tất cả) | `active` \| `completed` \| `all` \| khác | `completed` → `status: complete`. Giá trị khác `active/completed` = không lọc |
 | `page` | int | `1` | `>= 1` | Ép qua `parseInt`; NaN hoặc <1 sẽ về 1 |
-| `limit` | int | `5` | `1..50` | Bị kẹp trong `[1, 50]` |
+| `limit` | int | `5` | `1..50` | Bị kẹp trong `[1, 50]` (0 → mặc định 5, xem DF-05) |
 
 #### Response 200
 

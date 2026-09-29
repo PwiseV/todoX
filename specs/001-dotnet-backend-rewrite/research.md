@@ -32,7 +32,7 @@ The `HasValue` property on `JsonElement?` distinguishes absent (false) from pres
 
 **How it is tested**: Two integration tests on the same pre-created task:
 1. `PUT { "status": "active", "completedAt": null }` → GET task → `completedAt` is JSON null.
-2. `PUT { "title": "renamed" }` → GET task → `completedAt` unchanged from test 1 (still null).
+2. Complete a task with a non-null `completedAt` (`PUT { "status": "complete", "completedAt": "2026-09-28T03:00:00.000Z" }`), then send a rename-only `PUT { "title": "renamed" }` → `completedAt` is unchanged (still the non-null value). Matches tasks.md T032 `PutTask_RenameOnly_LeavesCompletedAtUnchanged`; a null-before/null-after check could not distinguish absent from null.
 
 ---
 
