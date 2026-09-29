@@ -190,6 +190,7 @@ Quy tắc:
 
 - Chỉ các trường `!== undefined` mới được đưa vào bản cập nhật.
 - `title`: nếu có mặt, phải là `string` non-empty sau `trim()`. Sai → `400`.
+  (dotnet-backend: a non-string `title` gets ASP.NET's default 400 body — see §8.)
 - `status`: nếu có mặt, không được kiểm ở controller — chuyển thẳng cho
   Mongoose validate enum (`runValidators: true`). Không thuộc enum →
   `ValidationError` → `400 { message: "Dữ liệu nhiệm vụ không hợp lệ" }`.
@@ -259,7 +260,9 @@ lọc gì (rơi vào default).
 
 - `page` mặc định `1`, ép qua `Math.max(1, parseInt(page) || 1)`.
 - `limit` mặc định `5`, kẹp trong `[1, 50]` bằng
-  `Math.min(50, Math.max(1, parseInt(limit) || 5))`.
+  `Math.min(50, Math.max(1, parseInt(limit) || 5))`. Because `0` is falsy,
+  `limit=0` falls back to `5` rather than clamping to `1` (preserved quirk
+  DF-05, §7).
 - `skip = (page - 1) * limit`.
 - `totalPages = max(1, ceil(totalCount / limit))`.
 - Nếu `page` vượt quá `totalPages`, server vẫn trả 200 với `tasks: []` (không
@@ -403,3 +406,4 @@ Informational only — these are **not** §6 deviations, because they were not
 deliberate choices; they arise from framework behavior.
 
 - `PUT /api/tasks/:id` with a non-string JSON value for `title` (e.g. a number) returns ASP.NET's default 400 body instead of Node's 500 (dynamic-typing crash) or the contract's custom 400 message. The frontend never sends a non-string title, so this has no observed impact. Left unfixed; revisit if a second API client is ever built.
+- `completedAt` as a JSON number or boolean returns 400 (unlike Mongoose, which would coerce a number to a date); the frontend never sends either.

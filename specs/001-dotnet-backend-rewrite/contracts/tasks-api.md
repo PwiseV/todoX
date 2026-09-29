@@ -18,7 +18,7 @@ All request/response bodies are `application/json`. All timestamps are ISO 8601 
 | `dateQuery` | string | (none — all tasks) | `today` / `week` / `month` apply a start-date filter; any other value or absent = no filter |
 | `filter` | string | (none — all statuses) | `active` → `status = "active"`; `completed` → `status = "complete"`; any other value or absent = no filter |
 | `page` | int | `1` | Parsed as int; NaN or < 1 → 1; values > totalPages echoed unchanged |
-| `limit` | int | `5` | Parsed as int; clamped to [1, 50] |
+| `limit` | int | `5` | Parsed as int; clamped to [1, 50]; exception: `0` falls back to `5`, not `1` (DF-05) |
 
 ### Response 200
 
@@ -125,7 +125,7 @@ Field rules:
 | Status | Body | Condition |
 |--------|------|-----------|
 | 200 | Full `TaskResponseDto` after update | Success |
-| 400 | `{ "message": "Tiêu đề nhiệm vụ không được để trống" }` | `title` present but blank/non-string |
+| 400 | `{ "message": "Tiêu đề nhiệm vụ không được để trống" }` | `title` present but blank (a non-string `title` gets ASP.NET's default 400 body instead — see `docs/api-contract.md` §8) |
 | 400 | `{ "message": "Dữ liệu nhiệm vụ không hợp lệ" }` | `status` present but outside allowed enum, or `completedAt` is an unparseable date string (api-contract §5.8) |
 | 404 | `{ "message": "Nhiệm vụ không tồn tại" }` | No task with given id (well-formed UUID not found) |
 | 500 | `{ "message": "Lỗi hệ thống" }` | Malformed id (FormatException) or other unhandled error |

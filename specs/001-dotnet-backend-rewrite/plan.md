@@ -6,7 +6,7 @@
 
 ## Summary
 
-Rewrite the todoX backend as an ASP.NET Core 10 Web API (controllers, EF Core + Npgsql, PostgreSQL via Docker Compose) so the existing React frontend operates unchanged against `http://localhost:5001`. The new backend reproduces every behavioral contract in `docs/api-contract.md` §1–§4, preserves the §7 deferred quirks (DF-01 through DF-04), and applies only the §6 authorized deviations (UUID string `_id`, constant `__v` = 0).
+Rewrite the todoX backend as an ASP.NET Core 10 Web API (controllers, EF Core + Npgsql, PostgreSQL via Docker Compose) so the existing React frontend operates unchanged against `http://localhost:5001`. The new backend reproduces every behavioral contract in `docs/api-contract.md` §1–§4, preserves the §7 deferred quirks (DF-01 through DF-05), and applies only the §6 authorized deviations (UUID string `_id`, constant `__v` = 0).
 
 ## Technical Context
 
@@ -34,9 +34,9 @@ Rewrite the todoX backend as an ASP.NET Core 10 Web API (controllers, EF Core + 
 |-----------|-------------|--------|
 | I. Scope Isolation | All work in `backend-dotnet/`; `frontend/` and `backend/` frozen | ✅ Pass — plan targets `backend-dotnet/` only; any new docs go to `docs/` as read-only guidance |
 | II. Prescribed Stack | ASP.NET Core Web API, .NET 10, controllers, EF Core, PostgreSQL, Docker Compose | ✅ Pass — stack matches exactly; no alternate ORM, framework, or DB engine introduced |
-| III. Frontend Compatibility | Routes/methods/JSON shapes match api-contract.md; §6 deviations authorized; §7 quirks preserved | ✅ Pass — UUID `_id` and `__v`=0 are authorized in §6; DF-01/DF-02/DF-03/DF-04 preserved per §7 |
+| III. Frontend Compatibility | Routes/methods/JSON shapes match api-contract.md; §6 deviations authorized; §7 quirks preserved | ✅ Pass — UUID `_id` and `__v`=0 are authorized in §6; DF-01/DF-02/DF-03/DF-04/DF-05 preserved per §7 |
 | IV. Test-First for Business Rules | xUnit tests for every §4 rule, written before/alongside impl, must fail against empty impl | ✅ Pass — full test matrix enumerated in Test Plan section |
-| V. Supply Chain & Secret Hygiene | All NuGet packages listed in plan.md; secrets via git-ignored config | ✅ Pass — complete manifest below; `appsettings.Development.json` git-ignored |
+| V. Supply Chain & Secret Hygiene | All NuGet packages listed in plan.md; secrets via git-ignored config | ✅ Pass — complete manifest below; local Postgres uses trust auth bound to `127.0.0.1` (Key Design Decision 11), so the committed `appsettings.Development.json` holds a password-free connection string and no secret exists to leak |
 | Dependency Rule | Every NuGet package listed in plan.md | ✅ Pass — 8 packages listed, each justified (2 production, 6 test) |
 
 **No violations. Plan is clear to proceed.**
@@ -61,9 +61,15 @@ Rewrite the todoX backend as an ASP.NET Core 10 Web API (controllers, EF Core + 
 | `Microsoft.NET.Test.Sdk` | latest | .NET test platform SDK; required for `dotnet test` to discover xUnit tests |
 | `Testcontainers.PostgreSql` | 3.x | Starts a real PostgreSQL instance per test session; integration tests run against the same DB engine as production |
 | `Microsoft.AspNetCore.Mvc.Testing` | 10.x | `WebApplicationFactory<Program>` tests the full request pipeline in-process without a network round-trip |
-| `Microsoft.Extensions.TimeProvider.Testing` | 9.x latest stable | Provides `FakeTimeProvider` (namespace `Microsoft.Extensions.Time.Testing`) used to control the injected `TimeProvider` in tests; advances the clock between task creations for DF-04 mitigation |
+| `Microsoft.Extensions.TimeProvider.Testing` | 10.10.0 (latest stable on NuGet as of 2026-09-30; versions independently of the .NET runtime) | Provides `FakeTimeProvider` (namespace `Microsoft.Extensions.Time.Testing`) used to control the injected `TimeProvider` in tests; advances the clock between task creations for DF-04 mitigation |
 
 **Total: 8 NuGet packages** (2 production, 6 test-only).
+
+### Tooling
+
+| Tool | Version | Justification |
+|------|---------|---------------|
+| `dotnet-ef` (global .NET tool) | 10.x (match EF Core major; 10.0.12 latest stable as of 2026-09-30) | EF Core CLI for `dotnet ef migrations add` (tasks.md T010). Installed via `dotnet tool install --global dotnet-ef --version 10.*`; not a project package reference |
 
 ---
 
@@ -176,6 +182,14 @@ Npgsql accepts only `DateTime` values with `Kind == Utc` for `timestamptz` colum
 2. Truncate to milliseconds using the same helper as `CreatedAt`/`UpdatedAt`.
 3. Wrap step 1 in `try/catch (FormatException)`; on failure return 400 `{ "message": "Dữ liệu nhiệm vụ không hợp lệ" }` (matches api-contract §5.8: invalid date strings surface the generic validation-error message, not 500).
 
+### 11. Local Postgres — trust auth, localhost-only (two-command bootstrap)
+
+The constitution requires `docker compose up` + `dotnet run` with no other step, and forbids committed credentials. Both hold by having **no credential at all** locally:
+
+- `docker-compose.yml`: the postgres service binds `"127.0.0.1:5432:5432"` and sets `POSTGRES_HOST_AUTH_METHOD=trust`; no password, no `.env` file. The file carries the comment "dev only - trust auth, localhost-only bind, not for any non-local use."
+- `TodoX.Api/appsettings.Development.json` is **committed** with the password-free connection string `Host=localhost;Port=5432;Database=todox;Username=postgres`.
+- Integration tests are unaffected (Testcontainers generates its own credentials at runtime).
+
 ---
 
 ## Test Plan — Business Rules Coverage (Constitution IV)
@@ -201,7 +215,7 @@ Every §4 rule requires a named failing-first test. Tests are written before or 
 | Sort: newest first within group | — | `TasksControllerTests.GetTasks_Sort_NewestFirstWithinGroup` |
 | `activeCount`/`completeCount` ignore `filter` | — | `TasksControllerTests.GetTasks_Counts_IndependentOfFilter` |
 | `totalCount` respects both date and status filters | — | `TasksControllerTests.GetTasks_TotalCount_RespectsBothFilters` |
-| Title trimmed before save (POST + PUT) | `TaskServiceTests.Create_TrimsTitle_BeforeSave`, `TaskServiceTests.Rename_TrimsTitle_BeforeSave` | `TasksControllerTests.PostTask_PaddedTitle_StoresTrimmed` |
+| Title trimmed before save (POST + PUT) | — | `TaskServiceTests.Create_TrimsTitle_BeforeSave`, `TaskServiceTests.Rename_TrimsTitle_BeforeSave` (service-level, against Testcontainers Postgres — no in-memory provider is approved), `TasksControllerTests.PostTask_PaddedTitle_StoresTrimmed` |
 | Whitespace-only title (tabs/newlines) on POST → 500 | — | `TasksControllerTests.PostTask_TabsAndNewlinesOnly_Returns500` |
 | PUT `completedAt` invalid ISO → 400 | — | `TasksControllerTests.PutTask_InvalidCompletedAt_Returns400_WithInvalidDataMessage` |
 | PUT with exact frontend Complete payload persists correctly | — | `TasksControllerTests.PutTask_FrontendCompletePayload_PersistsUtc` |
@@ -243,14 +257,17 @@ backend-dotnet/
 │   ├── Entities/
 │   │   └── TaskEntity.cs                EF Core entity; Guid PK
 │   ├── Services/
-│   │   ├── ITaskService.cs
-│   │   └── TaskService.cs               business logic, date ranges, EF queries
+│   │   ├── ITaskService.cs              service contract + TaskUpdate record
+│   │   ├── TaskService.cs               business logic, EF queries
+│   │   ├── StatusFilter.cs              filter → status mapping ("completed" → "complete")
+│   │   └── Pagination.cs                page/limit parsing (parseInt parity, DF-05), skip, totalPages
 │   ├── Infrastructure/
-│   │   ├── DateRangeCalculator.cs       today/week/month in Asia/Ho_Chi_Minh
+│   │   ├── DateRangeCalculator.cs       today/week/month in Asia/Ho_Chi_Minh; TZ resolution
 │   │   ├── MillisecondDateTimeConverter.cs   ISO 8601 3-frac-digit serializer
+│   │   ├── DateTimeTruncation.cs        truncate DateTime to milliseconds
 │   │   └── GlobalExceptionHandler.cs    IExceptionHandler → 500 { "message": "Lỗi hệ thống" }
 │   ├── appsettings.json                 non-secret config (CORS origin, env marker)
-│   ├── appsettings.Development.json     ← .gitignore; contains DB connection string
+│   ├── appsettings.Development.json     committed; password-free connection string (trust auth, Decision 11)
 │   ├── Properties/
 │   │   └── launchSettings.json          applicationUrl: "http://localhost:5001"
 │   └── TodoX.Api.csproj
@@ -258,17 +275,29 @@ backend-dotnet/
 │   ├── Unit/
 │   │   ├── DateRangeCalculatorTests.cs  today/week/month boundary logic
 │   │   ├── PaginationTests.cs           page/limit clamping, totalPages edge cases
-│   │   └── StatusMappingTests.cs        "completed" → "complete" filter mapping
+│   │   ├── StatusMappingTests.cs        "completed" → "complete" filter mapping
+│   │   ├── MillisecondDateTimeConverterTests.cs   3-frac-digit wire format
+│   │   ├── DateTimeTruncationTests.cs   ms truncation helper
+│   │   └── GlobalExceptionHandlerTests.cs   500 body + content type
 │   ├── Integration/
-│   │   ├── TasksControllerTests.cs      full request pipeline; business rules
+│   │   ├── TasksControllerTests.cs      partial class: shared setup/helpers
+│   │   ├── TasksControllerTests.Create.cs       POST
+│   │   ├── TasksControllerTests.Update.cs       PUT validation/rename/404/DF-02
+│   │   ├── TasksControllerTests.CompletedAt.cs  PUT absent vs null completedAt
+│   │   ├── TasksControllerTests.Delete.cs       DELETE
+│   │   ├── TasksControllerTests.List.cs         GET filters/pagination/sort
+│   │   ├── TasksControllerTests.Counts.cs       GET activeCount/completeCount
+│   │   ├── TaskServiceTests.cs          service-level title trimming (Testcontainers)
+│   │   ├── PerformanceTests.cs          SC-005, 10k tasks < 1 s
 │   │   ├── HealthControllerTests.cs     /api/health response shape + timestamp format
 │   │   └── Fixtures/
 │   │       ├── PostgresContainerFixture.cs   Testcontainers: IAsyncLifetime; shared per collection
 │   │       └── TodoXWebFactory.cs            WebApplicationFactory<Program>; injects test DB
 │   └── TodoX.Tests.csproj
 ├── TodoX.sln
-├── docker-compose.yml                   PostgreSQL 16; port 5432; credentials from .env
-└── .env.example                         POSTGRES_PASSWORD=changeme (template; not secret)
+├── docker-compose.yml                   PostgreSQL 16; 127.0.0.1:5432; trust auth, no password (dev only)
+├── .gitignore                           bin/obj etc.; `!*.sln` overrides the repo-root *.sln ignore
+└── README.md                            two-command bootstrap, test commands, preserved quirks DF-01..DF-05
 ```
 
 **Structure Decision**: Single solution, two projects (API + tests). No monorepo layers — this is a single-service rewrite. `backend-dotnet/` is self-contained per Principle I.

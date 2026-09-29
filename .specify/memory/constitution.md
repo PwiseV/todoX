@@ -118,7 +118,9 @@ the manifest to a reviewed list keeps the practice project auditable.
 - **Local bootstrap**: A fresh clone MUST be able to run `docker compose up`
   followed by the standard `dotnet run` to reach a working `/api/health`
   response. Any deviation from this two-command bootstrap is a blocker.
-- **Test gate**: `dotnet test` MUST pass locally and in CI before merge.
+- **Test gate**: `dotnet test` MUST pass locally before merge; CI enforcement
+  applies once this repo has a CI workflow (none exists yet for this solo
+  practice repo).
   Coverage of the business rules listed in Principle IV is enforced by the
   presence of named tests, not by a coverage percentage; missing rule tests
   are a merge blocker.
@@ -151,4 +153,4 @@ immediately-following commit.
 Runtime development guidance lives in `docs/api-contract.md` (contract
 truth) and the plan/tasks artifacts produced by Spec Kit commands.
 
-**Version**: 1.1.0 | **Ratified**: 2026-09-26 | **Last Amended**: 2026-09-28
+**Version**: 1.2.0 | **Ratified**: 2026-09-26 | **Last Amended**: 2026-09-30

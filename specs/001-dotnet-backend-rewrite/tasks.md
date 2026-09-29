@@ -35,13 +35,13 @@ description: "Task list for the .NET backend rewrite of todoX"
 
 **Purpose**: Solution skeleton, approved packages, local infrastructure. No business logic.
 
-- [ ] T001 Create `backend-dotnet/.gitignore` ignoring `bin/`, `obj/`, `*.user`, `TestResults/`, `TodoX.Api/appsettings.Development.json`, and `.env`, and add the negation `!*.sln`. The repo-root `.gitignore` ignores `*.sln`; without the negation `backend-dotnet/TodoX.sln` would never be committed.
+- [ ] T001 Create `backend-dotnet/.gitignore` ignoring `bin/`, `obj/`, `*.user`, and `TestResults/`, and add the negation `!*.sln`. Do **not** ignore `TodoX.Api/appsettings.Development.json`; it is committed (T007). The repo-root `.gitignore` ignores `*.sln`; without the negation `backend-dotnet/TodoX.sln` would never be committed.
 - [ ] T002 Scaffold the solution and API project: in `backend-dotnet/` run `dotnet new sln -n TodoX --format sln` (the plan names `TodoX.sln`, and .NET 10 defaults to `.slnx`) and `dotnet new webapi --use-controllers -n TodoX.Api -f net10.0`, then add the project to the solution. Delete the template's `WeatherForecast.cs` and `Controllers/WeatherForecastController.cs`, and remove any template OpenAPI/Swagger package reference and its calls in `backend-dotnet/TodoX.Api/Program.cs`, because that package is not in the plan's manifest. Result: `backend-dotnet/TodoX.sln`, `backend-dotnet/TodoX.Api/TodoX.Api.csproj`.
 - [ ] T003 Add exactly the two approved API packages to `backend-dotnet/TodoX.Api/TodoX.Api.csproj`: `Npgsql.EntityFrameworkCore.PostgreSQL` 10.x and `Microsoft.EntityFrameworkCore.Design` 10.x. Add no others (Constitution V).
-- [ ] T004 Scaffold `backend-dotnet/TodoX.Tests/TodoX.Tests.csproj` (xUnit, `net10.0`), add it to `backend-dotnet/TodoX.sln`, and add a project reference to `TodoX.Api`. The package list MUST be exactly the six approved test packages: `xunit` 2.x, `xunit.runner.visualstudio` 2.x, `Microsoft.NET.Test.Sdk`, `Testcontainers.PostgreSql` 3.x, `Microsoft.AspNetCore.Mvc.Testing` 10.x, `Microsoft.Extensions.TimeProvider.Testing` 9.x. Remove template extras such as `coverlet.collector`, and use xUnit 2, not `xunit.v3`, if the template picks v3. Create the empty folders `Unit/`, `Integration/`, and `Integration/Fixtures/`, and delete the template `UnitTest1.cs`.
+- [ ] T004 Scaffold `backend-dotnet/TodoX.Tests/TodoX.Tests.csproj` (xUnit, `net10.0`), add it to `backend-dotnet/TodoX.sln`, and add a project reference to `TodoX.Api`. The package list MUST be exactly the six approved test packages: `xunit` 2.x, `xunit.runner.visualstudio` 2.x, `Microsoft.NET.Test.Sdk`, `Testcontainers.PostgreSql` 3.x, `Microsoft.AspNetCore.Mvc.Testing` 10.x, `Microsoft.Extensions.TimeProvider.Testing` 10.10.0. Remove template extras such as `coverlet.collector`, and use xUnit 2, not `xunit.v3`, if the template picks v3. Create the empty folders `Unit/`, `Integration/`, and `Integration/Fixtures/`, and delete the template `UnitTest1.cs`.
 - [ ] T005 [P] Set `backend-dotnet/TodoX.Api/Properties/launchSettings.json` to a single `http` profile with `"applicationUrl": "http://localhost:5001"` and `ASPNETCORE_ENVIRONMENT=Development`. Remove the https profile and the `launchUrl` to swagger.
-- [ ] T006 [P] Create `backend-dotnet/docker-compose.yml` with a PostgreSQL 16 service on port `5432`, a named volume, and `POSTGRES_USER`/`POSTGRES_DB`/`POSTGRES_PASSWORD` read from `.env`. No literal password in the file. Create `backend-dotnet/.env.example` containing `POSTGRES_PASSWORD=changeme` and placeholder user/db names.
-- [ ] T007 [P] Put only non-secret configuration in `backend-dotnet/TodoX.Api/appsettings.json`: `Cors:AllowedOrigin = "http://localhost:5173"`, logging, and no connection string. Create the committed template `backend-dotnet/TodoX.Api/appsettings.Development.example.json` with `ConnectionStrings:TodoX` pointing at `localhost:5432` with a `changeme` placeholder password. The real `appsettings.Development.json` stays git-ignored (T001).
+- [ ] T006 [P] Create `backend-dotnet/docker-compose.yml` with a PostgreSQL 16 service bound to `"127.0.0.1:5432:5432"`, `POSTGRES_HOST_AUTH_METHOD=trust`, `POSTGRES_DB=todox`, and a named volume. No password and no `.env` file (plan.md Key Design Decision 11). Put the comment `# dev only - trust auth, localhost-only bind, not for any non-local use.` above the service.
+- [ ] T007 [P] Put only non-secret configuration in `backend-dotnet/TodoX.Api/appsettings.json`: `Cors:AllowedOrigin = "http://localhost:5173"`, logging, and no connection string. Commit `backend-dotnet/TodoX.Api/appsettings.Development.json` directly (no `.example` template, no copy step) with `ConnectionStrings:TodoX = "Host=localhost;Port=5432;Database=todox;Username=postgres"`. It contains no password.
 
 **Checkpoint**: `dotnet build backend-dotnet/TodoX.sln` succeeds, and `docker compose up -d` (run in `backend-dotnet/`) starts Postgres.
 
@@ -56,8 +56,8 @@ description: "Task list for the .NET backend rewrite of todoX"
 ### Persistence
 
 - [ ] T008 [P] Create `backend-dotnet/TodoX.Api/Entities/TaskEntity.cs` with properties `Guid Id`, `string Title`, `string Status`, `DateTime? CompletedAt`, `DateTime CreatedAt`, `DateTime UpdatedAt` (data-model.md "EF Core Entity").
-- [ ] T009 Create `backend-dotnet/TodoX.Api/Data/AppDbContext.cs` with `DbSet<TaskEntity> Tasks`. Fluent config in `OnModelCreating`, taken verbatim from data-model.md: `ToTable("Tasks")`; `Id`: `HasDefaultValueSql("gen_random_uuid()")`; `Title`: `.IsRequired()` + `HasCheckConstraint("CK_Tasks_Title_NotBlank", "trim(\"Title\") <> ''")`; `Status`: `.IsRequired().HasDefaultValue("active")` + `HasCheckConstraint("CK_Tasks_Status_Enum", "\"Status\" IN ('active', 'complete')")`; `CompletedAt` nullable `timestamptz`; `CreatedAt`, `UpdatedAt`: `.IsRequired()`. Add no `__v` column and no uniqueness constraint on `Title`. Depends on T008.
-- [ ] T010 Generate the initial migration: `dotnet ef migrations add InitialCreate --project backend-dotnet/TodoX.Api --output-dir Data/Migrations`. This requires the `dotnet-ef` global tool and a local `appsettings.Development.json` copied from the T007 template. Check in `backend-dotnet/TodoX.Api/Data/Migrations/*`, and confirm the generated SQL contains both CHECK constraints and `gen_random_uuid()`. Depends on T009 and on the temporary DbContext registration in T018. If T018 is not done yet, register `AppDbContext` with Npgsql in `Program.cs` as part of this task.
+- [ ] T009 Create `backend-dotnet/TodoX.Api/Data/AppDbContext.cs` with `DbSet<TaskEntity> Tasks`. Fluent config in `OnModelCreating`, taken verbatim from data-model.md: `ToTable("Tasks")`; `Id`: `HasDefaultValueSql("gen_random_uuid()")`; `Title`: `.IsRequired()` + `HasCheckConstraint("CK_Tasks_Title_NotBlank", "trim(\"Title\") <> ''")`; `Status`: `.IsRequired().HasDefaultValue("active")` + `HasCheckConstraint("CK_Tasks_Status_Enum", "\"Status\" IN ('active', 'complete')")`; `CompletedAt` nullable `timestamptz`; `CreatedAt`, `UpdatedAt`: `.IsRequired()`. Add no `__v` column and no uniqueness constraint on `Title`. In the same commit, register the context in `backend-dotnet/TodoX.Api/Program.cs` with `AddDbContext<AppDbContext>` using Npgsql and `ConnectionStrings:TodoX`; this is the only place that registration is added. Depends on T008.
+- [ ] T010 Generate the initial migration: `dotnet ef migrations add InitialCreate --project backend-dotnet/TodoX.Api --output-dir Data/Migrations`. This requires the `dotnet-ef` global tool, version 10.x (plan.md "Tooling"). Check in `backend-dotnet/TodoX.Api/Data/Migrations/*`, and confirm the generated SQL contains both CHECK constraints and `gen_random_uuid()`. Depends on T009.
 
 ### Timestamp converter (wire format: exactly 3 fractional digits, trailing `Z`)
 
@@ -99,7 +99,6 @@ description: "Task list for the .NET backend rewrite of todoX"
   Property order must match api-contract §2: `_id, title, status, completedAt, createdAt, updatedAt, __v`.
 - [ ] T018 Wire `backend-dotnet/TodoX.Api/Program.cs`:
   - `AddControllers().AddJsonOptions(...)`: camelCase names, register both converters from T012 globally, and **do not** set `DefaultIgnoreCondition` (nulls must be serialized)
-  - `AddDbContext<AppDbContext>` with Npgsql and `ConnectionStrings:TodoX`
   - `AddSingleton(TimeProvider.System)`
   - `AddExceptionHandler<GlobalExceptionHandler>()` and `AddProblemDetails()` (without it, `UseExceptionHandler()` throws at startup), then `app.UseExceptionHandler()`
   - a CORS policy allowing `Cors:AllowedOrigin`, any header and any method, enabled only when `!app.Environment.IsProduction()` (FR-016)
@@ -276,7 +275,7 @@ description: "Task list for the .NET backend rewrite of todoX"
 - [ ] T040 [P] [US2] **Test first**: write `backend-dotnet/TodoX.Tests/Unit/PaginationTests.cs` for `Pagination.ParsePage(string?)`, `Pagination.ParseLimit(string?)`, `Pagination.TotalPages(int totalCount, int limit)`, and `Pagination.Skip(int page, int limit)`. The rules mirror `Math.max(1, parseInt(page) || 1)` and `Math.min(50, Math.max(1, parseInt(limit) || 5))`:
   - `Page_Defaults_And_MinClamp`: `null`, `""`, `"abc"`, `"0"`, `"-5"` give 1; `"3"` gives 3; `"2abc"` gives 2 and `" 4"` gives 4 (parseInt reads the leading integer); `"1.9"` gives 1.
   - `Page_AboveTotal_NotClamped`: `"9999"` gives 9999.
-  - `Limit_Clamped_To_Range`: `null` and `"abc"` give 5; `"0"` gives **5** (JS `0 || 5`, see note below); `"-3"` gives 1; `"1000"` gives 50; `"51"` gives 50; `"50"` gives 50; `"7"` gives 7.
+  - `Limit_Clamped_To_Range`: `null` and `"abc"` give 5; `"0"` gives **5** (preserved quirk DF-05, `docs/api-contract.md` §7: JS `0 || 5`); `"-3"` gives 1; `"1000"` gives 50; `"51"` gives 50; `"50"` gives 50; `"7"` gives 7.
   - `TotalPages_AtLeastOne`: (0,5) gives 1, (5,5) gives 1, (6,5) gives 2, (11,5) gives 3.
   - `Skip_IsPageMinusOneTimesLimit`: (3,5) gives 10.
 
@@ -339,8 +338,8 @@ description: "Task list for the .NET backend rewrite of todoX"
 ## Phase 6: Polish & Cross-Cutting Concerns
 
 - [ ] T048 [P] Add `backend-dotnet/TodoX.Tests/Integration/PerformanceTests.cs` (`[Trait("Category", "Performance")]`, `[Collection("Postgres")]`): bulk-insert 10,000 tasks with distinct `CreatedAt` through `AppDbContext`, warm up once, then assert `GET /api/tasks?dateQuery=all&filter=all&page=1&limit=5` completes in under 1 s (SC-005). If it fails, raise a plan amendment (for example an index on `(Status, CreatedAt)` via a new migration) before changing the schema.
-- [ ] T049 [P] Write `backend-dotnet/README.md` covering prerequisites; one-time copies of `.env.example` to `.env` and `TodoX.Api/appsettings.Development.example.json` to `appsettings.Development.json`; the two-command bootstrap (`docker compose up -d` and `dotnet run --project TodoX.Api`, both in `backend-dotnet/`); `dotnet test` and `dotnet test --filter "Category=Unit"`; the `TZ` env override; the Linux `tzdata` requirement (research.md R-05); and the list of preserved quirks DF-01 to DF-04.
-- [ ] T050 [P] Fix the bootstrap step in `specs/001-dotnet-backend-rewrite/quickstart.md`: Step 1 says to run `docker compose up -d` from the repo root, but the compose file is at `backend-dotnet/docker-compose.yml` (Principle I). Change it to run in `backend-dotnet/`, and add the one-time config-copy note from T049. This is a docs-only change and is allowed under Principle I.
+- [ ] T049 [P] Write `backend-dotnet/README.md` covering prerequisites; the two-command bootstrap with no copy step (`docker compose up -d` and `dotnet run --project TodoX.Api`, both in `backend-dotnet/`); `dotnet test` and `dotnet test --filter "Category=Unit"`; the `TZ` env override; the Linux `tzdata` requirement (research.md R-05); the local Postgres trust-auth note (dev only, localhost-only bind); and the list of preserved quirks DF-01 to DF-05.
+- [ ] T050 [P] Fix the bootstrap step in `specs/001-dotnet-backend-rewrite/quickstart.md`: Step 1 says to run `docker compose up -d` from the repo root, but the compose file is at `backend-dotnet/docker-compose.yml` (Principle I). Change it to run in `backend-dotnet/`. No config-copy step is needed (trust auth, committed `appsettings.Development.json`). This is a docs-only change and is allowed under Principle I.
 - [ ] T051 Run `dotnet test backend-dotnet/TodoX.sln` (Docker running): everything must be green. Run `dotnet test backend-dotnet/TodoX.sln --filter "Category=Unit"` with Docker stopped: it must pass, proving the unit tests have no container dependency. Record the results in the PR description.
 - [ ] T052 Manual API validation: in `backend-dotnet/`, run `docker compose up -d` and then `dotnet run --project TodoX.Api`, and execute quickstart.md V-01 through V-07 with curl against `http://localhost:5001`, including the health smoke check. Every status code and body must match. Log any mismatch as a new task; do not patch it silently.
 - [ ] T053 **Frontend end-to-end check (quickstart V-08, SC-001)**:
@@ -351,7 +350,7 @@ description: "Task list for the .NET backend rewrite of todoX"
 - [ ] T054 Final compliance audit:
   - (a) `git diff main --stat -- frontend backend` is empty (Principle I).
   - (b) `dotnet list backend-dotnet/TodoX.sln package` shows exactly the 8 approved packages (Constitution V).
-  - (c) Grep the tracked files under `backend-dotnet/` for `Password=` and for literal passwords. Only the `changeme` placeholders are allowed, and `appsettings.Development.json` and `.env` must be untracked.
+  - (c) Grep the tracked files under `backend-dotnet/` for `Password=`, `POSTGRES_PASSWORD`, and literal passwords; there must be none. Confirm local Postgres needs no password: `docker-compose.yml` sets `POSTGRES_HOST_AUTH_METHOD=trust`, binds only `127.0.0.1:5432`, and carries the dev-only comment, and the committed `appsettings.Development.json` connection string has no `Password`.
   - (d) Every test name in the plan.md Test Plan table exists in the solution.
 
 ---
@@ -362,7 +361,7 @@ description: "Task list for the .NET backend rewrite of todoX"
 
 - **Setup (T001–T007)**: T002 must run before T003 and T004. T005, T006, and T007 are [P] once T002 exists.
 - **Foundational (T008–T022)**: depends on Setup and blocks all stories.
-  - Chain T008 → T009 → T010 (T010 also needs the DbContext registration from T018, or a temporary one).
+  - Chain T008 → T009 → T010 (T009 includes the `AddDbContext` registration T010 needs).
   - Pairs T011→T012, T013→T014, T015→T016; the three pairs can run in parallel with each other.
   - T018 needs T012 and T016. T019 needs T010 and T018. T020 needs T019. Then T021 → T022.
 - **US1 (T023–T035)**: depends on Foundational.

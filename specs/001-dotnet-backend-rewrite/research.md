@@ -96,7 +96,7 @@ Applied in `TaskService` before setting `CreatedAt` and `UpdatedAt`. The stored 
 
 **Platform caveats**:
 - **Windows** (dev): `Asia/Ho_Chi_Minh` resolves natively via bundled ICU/tzdata. Verified by the first `DateRangeCalculatorTests` unit test, which asserts `TimeZoneInfo.FindSystemTimeZoneById("Asia/Ho_Chi_Minh")` does not throw — a deterministic sanity check that fails loudly if the local runtime is misconfigured.
-- **Linux/Docker**: slim base images (e.g. `mcr.microsoft.com/dotnet/aspnet:10.0-alpine`, `-noble-chiseled`) do NOT include the OS `tzdata` package by default. The Dockerfile MUST install it (`apk add --no-cache tzdata` for Alpine, `apt-get install -y tzdata` for Debian/Ubuntu). Without it, `FindSystemTimeZoneById` throws `TimeZoneNotFoundException` at startup.
+- **Linux/Docker**: slim base images (e.g. `mcr.microsoft.com/dotnet/aspnet:10.0-alpine`, `-noble-chiseled`) do NOT include the OS `tzdata` package by default. No Dockerfile is in scope for this rewrite; if the API is ever containerized, its base image MUST include tzdata (`apk add --no-cache tzdata` for Alpine, `apt-get install -y tzdata` for Debian/Ubuntu). Without it, `FindSystemTimeZoneById` throws `TimeZoneNotFoundException` at startup.
 
 **Alternatives considered**:
 - `TimeZoneConverter` NuGet package — an extra dependency that only became necessary before .NET 6's bundled tzdata. Rejected as unnecessary weight.
@@ -167,7 +167,7 @@ HTTP 500
 { "message": "Lỗi hệ thống" }
 ```
 
-`ValidationException` (status enum violations, caught by EF) and `FormatException` (malformed UUID) both route here. Controller-level 400 responses (`title` blank on PUT, status enum on PUT) are returned directly — they do not go through the exception handler.
+Controller-level 400 responses (`title` blank on PUT, status enum on PUT) are returned directly — they do not go through the exception handler.
 
 **Content-Type**: The handler must set `Content-Type: application/json` explicitly; the default exception handler does not.
 
@@ -184,7 +184,7 @@ HTTP 500
 - Only one trim call per path; no double-trim between service and DB.
 
 **Tests**:
-- Unit: `TaskServiceTests.Create_TrimsTitle_BeforeSave` — assert the entity's `Title` after `Create("  x  ")` equals `"x"`. Same for rename.
+- Integration (service-level, against the Testcontainers Postgres — no in-memory provider is approved): `TaskServiceTests.Create_TrimsTitle_BeforeSave` — assert the entity's `Title` after `Create("  x  ")` equals `"x"`. Same for rename.
 - Integration: `TasksControllerTests.PostTask_PaddedTitle_StoresTrimmed` — POST `{ "title": "  x  " }`, GET the list, assert the response contains `"title": "x"`.
 - Integration: `TasksControllerTests.PostTask_TabsAndNewlinesOnly_Returns500` — POST `{ "title": "\t\n" }`, assert HTTP 500 with `{ "message": "Lỗi hệ thống" }`.
 

@@ -16,7 +16,7 @@ A user can create new tasks, rename existing tasks, mark tasks as complete or re
 
 **Why this priority**: Task management is the core of the application — without it, no other feature delivers value.
 
-**Independent Test**: Can be fully tested by performing create, rename, complete, reopen, and delete operations and verifying the task list reflects each change.
+**Independent Test**: Can be fully tested by performing create, rename, complete, reopen, and delete operations and verifying via the operation responses (create/rename/complete/reopen/delete), independent of the list endpoint.
 
 **Acceptance Scenarios**:
 
@@ -73,7 +73,7 @@ A user can see how many active and completed tasks exist within the selected dat
 ### Edge Cases
 
 - What happens when `page` is non-numeric or less than 1? → Treated as page 1.
-- What happens when `limit` is outside [1, 50]? → Silently clamped to the nearest valid bound; the clamped value is echoed back.
+- What happens when `limit` is outside [1, 50]? → Silently clamped to the nearest valid bound; the clamped value is echoed back. Exception: `limit=0` falls back to the default 5, not 1 (preserved quirk DF-05, `docs/api-contract.md` §7).
 - What happens when `dateQuery` is absent or an unrecognized string? → No date filter is applied.
 - What happens when `filter` is absent, `"all"`, or any unrecognized value (including `"complete"`)? → No status filter is applied.
 - What happens when a task ID in an update or delete request is malformed? → Returns 500 (preserved quirk; the id route parameter MUST be accepted as a raw string and passed through to the database layer so a malformed value produces a system error rather than an automatic 400 from a typed route binder).
@@ -111,7 +111,7 @@ A user can see how many active and completed tasks exist within the selected dat
 
 - **SC-001**: The existing React frontend operates against the new backend without any frontend code changes — all user flows (create, rename, complete, reopen, delete, filter, paginate) work end-to-end.
 - **SC-002**: Every business rule in `docs/api-contract.md` §4 is covered by an automated test that fails against an empty implementation before the implementation is written.
-- **SC-003**: After a one-time local configuration copy (`.env` and `appsettings.Development.json` from the committed templates), a fresh developer environment can reach a working health-check response by running two commands (start infrastructure + start the server).
+- **SC-003**: A fresh developer environment can reach a working health-check response by running two commands (start infrastructure + start the server).
 - **SC-004**: All automated tests pass before any feature change is committed to the main line.
 - **SC-005**: The task list response returns in under 1 second for a dataset of up to 10,000 tasks under normal single-user load.
 
