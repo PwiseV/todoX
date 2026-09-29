@@ -61,7 +61,7 @@ description: "Task list for the .NET backend rewrite of todoX"
 
 ### Timestamp converter (wire format: exactly 3 fractional digits, trailing `Z`)
 
-- [ ] T011 [P] **Test first**: write `backend-dotnet/TodoX.Tests/Unit/MillisecondDateTimeConverterTests.cs` covering both `MillisecondDateTimeConverter` (`JsonConverter<DateTime>`) and `NullableMillisecondDateTimeConverter` (`JsonConverter<DateTime?>`). Cases:
+- [X] T011 [P] **Test first**: write `backend-dotnet/TodoX.Tests/Unit/MillisecondDateTimeConverterTests.cs` covering both `MillisecondDateTimeConverter` (`JsonConverter<DateTime>`) and `NullableMillisecondDateTimeConverter` (`JsonConverter<DateTime?>`). Cases:
   - a UTC value with 7-digit ticks (`…:00.1234567`) serializes as `"…:00.123Z"`, truncated, not rounded
   - a whole-second UTC value serializes as `".000Z"`
   - a `DateTimeKind.Local` value is converted to UTC before formatting
