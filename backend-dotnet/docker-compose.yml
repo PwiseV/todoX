@@ -1,0 +1,16 @@
+name: todox
+
+services:
+  # dev only - trust auth, localhost-only bind, not for any non-local use.
+  postgres:
+    image: postgres:16
+    environment:
+      POSTGRES_HOST_AUTH_METHOD: trust
+      POSTGRES_DB: todox
+    ports:
+      - "127.0.0.1:5432:5432"
+    volumes:
+      - todox-pgdata:/var/lib/postgresql/data
+
+volumes:
+  todox-pgdata:
