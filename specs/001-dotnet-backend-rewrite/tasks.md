@@ -79,7 +79,7 @@ description: "Task list for the .NET backend rewrite of todoX"
 
 ### Global exception handler (FR-015)
 
-- [ ] T015 [P] **Test first**: write `backend-dotnet/TodoX.Tests/Unit/GlobalExceptionHandlerTests.cs`. Call `GlobalExceptionHandler.TryHandleAsync` with a `DefaultHttpContext` whose `Response.Body` is a `MemoryStream`, once each for `FormatException`, `DbUpdateException`, and `InvalidOperationException`. For each, assert:
+- [X] T015 [P] **Test first**: write `backend-dotnet/TodoX.Tests/Unit/GlobalExceptionHandlerTests.cs`. Call `GlobalExceptionHandler.TryHandleAsync` with a `DefaultHttpContext` whose `Response.Body` is a `MemoryStream`, once each for `FormatException`, `DbUpdateException`, and `InvalidOperationException`. For each, assert:
   - the return value is `true`
   - `StatusCode == 500`
   - `ContentType` starts with `application/json`
