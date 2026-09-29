@@ -14,3 +14,5 @@ TestResults/
 
 # Note: TodoX.Api/appsettings.Development.json is intentionally committed.
 # It holds a password-free connection string (local Postgres uses trust auth).
+
+.vs/
