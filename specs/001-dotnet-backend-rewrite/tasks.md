@@ -70,7 +70,7 @@ description: "Task list for the .NET backend rewrite of todoX"
   - reading `"2026-09-28T03:00:00.000Z"` returns `DateTimeKind.Utc`
 
   Add compile-only stubs of both classes in `backend-dotnet/TodoX.Api/Infrastructure/MillisecondDateTimeConverter.cs` that throw `NotImplementedException`. The tests must run red.
-- [ ] T012 Implement both converters in `backend-dotnet/TodoX.Api/Infrastructure/MillisecondDateTimeConverter.cs` using format `"yyyy-MM-ddTHH:mm:ss.fffZ"` with invariant culture, converting to UTC before writing. T011 turns green. Depends on T011.
+- [X] T012 Implement both converters in `backend-dotnet/TodoX.Api/Infrastructure/MillisecondDateTimeConverter.cs` using format `"yyyy-MM-ddTHH:mm:ss.fffZ"` with invariant culture, converting to UTC before writing. T011 turns green. Depends on T011.
 
 ### Millisecond truncation helper
 
