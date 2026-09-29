@@ -1,0 +1,16 @@
+# Build output
+bin/
+obj/
+
+# Test results
+TestResults/
+
+# User-specific files
+*.user
+*.suo
+
+# The repo-root .gitignore ignores *.sln; the solution file here must be committed.
+!*.sln
+
+# Note: TodoX.Api/appsettings.Development.json is intentionally committed.
+# It holds a password-free connection string (local Postgres uses trust auth).
