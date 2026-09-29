@@ -74,7 +74,7 @@ description: "Task list for the .NET backend rewrite of todoX"
 
 ### Millisecond truncation helper
 
-- [ ] T013 [P] **Test first**: write `backend-dotnet/TodoX.Tests/Unit/DateTimeTruncationTests.cs` for the static helper `DateTimeTruncation.TruncateToMilliseconds(DateTime)`. It must drop sub-millisecond ticks (`Ticks - Ticks % TimeSpan.TicksPerMillisecond`), preserve `Kind`, and leave an already-truncated value unchanged. Add a stub in `backend-dotnet/TodoX.Api/Infrastructure/DateTimeTruncation.cs` that throws. The tests must run red.
+- [X] T013 [P] **Test first**: write `backend-dotnet/TodoX.Tests/Unit/DateTimeTruncationTests.cs` for the static helper `DateTimeTruncation.TruncateToMilliseconds(DateTime)`. It must drop sub-millisecond ticks (`Ticks - Ticks % TimeSpan.TicksPerMillisecond`), preserve `Kind`, and leave an already-truncated value unchanged. Add a stub in `backend-dotnet/TodoX.Api/Infrastructure/DateTimeTruncation.cs` that throws. The tests must run red.
 - [ ] T014 Implement `backend-dotnet/TodoX.Api/Infrastructure/DateTimeTruncation.cs`. T013 turns green. Depends on T013.
 
 ### Global exception handler (FR-015)
