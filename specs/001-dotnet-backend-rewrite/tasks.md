@@ -86,7 +86,7 @@ description: "Task list for the .NET backend rewrite of todoX"
   - the parsed body is exactly `{ "message": "Lỗi hệ thống" }` with no other properties (no ProblemDetails fields)
 
   Add a stub `GlobalExceptionHandler : IExceptionHandler` in `backend-dotnet/TodoX.Api/Infrastructure/GlobalExceptionHandler.cs` that returns `false`. The tests must run red.
-- [ ] T016 Implement `backend-dotnet/TodoX.Api/Infrastructure/GlobalExceptionHandler.cs`. It writes status 500 and a JSON body `{ "message": "Lỗi hệ thống" }`, sets `Content-Type: application/json` explicitly (research.md R-09), logs the exception, and returns `true`. T015 turns green. Depends on T015.
+- [X] T016 Implement `backend-dotnet/TodoX.Api/Infrastructure/GlobalExceptionHandler.cs`. It writes status 500 and a JSON body `{ "message": "Lỗi hệ thống" }`, sets `Content-Type: application/json` explicitly (research.md R-09), logs the exception, and returns `true`. T015 turns green. Depends on T015.
 
 ### Wire DTO and composition root
 
