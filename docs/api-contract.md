@@ -391,5 +391,15 @@ tốt trên backend mới.
 | DF-02 | `PUT`/`DELETE` với `id` sai định dạng trả `500` thay vì `400`/`404` | §5.6 | The id is parsed in code; a parse failure (FormatException) goes to the global exception handler → 500. In the original controller, title validation runs first; a PUT with a malformed id but a valid title skips the 400, reaches `findByIdAndUpdate`, throws a CastError, and exits via the generic 500 handler. |
 | DF-03 | Message 404 khác nhau giữa `PUT` (`"Nhiệm vụ không tồn tại"`) và `DELETE` (`"Nhiệm vụ không tồn tại!"`) | §5.9 | Giữ nguyên sự bất đối xứng; client so khớp chuỗi không cần sửa. |
 | DF-04 | Thứ tự sắp xếp không xác định khi hai task có cùng `createdAt` chính xác đến ms | §4.4 | Latent issue — dễ kích hoạt khi seed data hoặc bulk insert. Pagination có thể không ổn định trong trường hợp này. Test cases PHẢI dùng `createdAt` khác nhau để đảm bảo thứ tự xác định. |
+| DF-05 | `limit=0` unexpectedly falls back to default 5 instead of clamping to 1 (JS falsy-zero quirk in `parseInt(limit) \|\| 5`) | §4.3 | Preserved for parity; a future fix would clamp 0 to 1 like any other value below the minimum. |
 
 Verified 2026-09-28: the frontend never reads error status or message and blocks blank titles before sending, so fixing these quirks later cannot break it.
+
+---
+
+## 8. Known Framework-Level Differences
+
+Informational only — these are **not** §6 deviations, because they were not
+deliberate choices; they arise from framework behavior.
+
+- `PUT /api/tasks/:id` with a non-string JSON value for `title` (e.g. a number) returns ASP.NET's default 400 body instead of Node's 500 (dynamic-typing crash) or the contract's custom 400 message. The frontend never sends a non-string title, so this has no observed impact. Left unfixed; revisit if a second API client is ever built.

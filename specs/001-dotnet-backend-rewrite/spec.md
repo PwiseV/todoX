@@ -94,7 +94,7 @@ A user can see how many active and completed tasks exist within the selected dat
 - **FR-008**: The system MUST return a paginated task list; active tasks MUST appear before completed tasks, and within each group tasks MUST be ordered newest-first by creation time.
 - **FR-009**: The task list MUST support date-range filtering via `dateQuery`: `today` (from 00:00 today), `week` (from 00:00 Monday of the current week), `month` (from 00:00 the 1st of the current month); any other value or absence of the parameter returns all tasks.
 - **FR-010**: The task list MUST support status filtering via `filter`: `active` returns only active tasks; `completed` returns only tasks with status `complete`; any other value or absence returns all statuses.
-- **FR-011**: `page` MUST default to 1 and be clamped to a minimum of 1; `limit` MUST default to 5 and be clamped to [1, 50]; both clamped values MUST be echoed in the response. A `page` above the last page is echoed unchanged; only the minimum of 1 applies.
+- **FR-011**: `page` MUST default to 1 and be clamped to a minimum of 1; `limit` MUST default to 5 and be clamped to [1, 50]; both clamped values MUST be echoed in the response. A `page` above the last page is echoed unchanged; only the minimum of 1 applies. A `limit` of exactly 0 falls back to the default of 5 rather than clamping to the minimum of 1, because the original `parseInt(limit) || 5` treats 0 as falsy. Negative values clamp to 1 as normal.
 - **FR-012**: The task list response MUST include `totalCount` (tasks matching both date and status filters), `totalPages` (≥ 1), `activeCount` (active tasks in the date range regardless of `filter`), `completeCount` (completed tasks in the date range regardless of `filter`), `page`, and `limit`.
 - **FR-013**: Task objects in all responses MUST include fields `_id`, `title`, `status`, `completedAt`, `createdAt`, `updatedAt`, and `__v` with the exact names and semantics defined in `docs/api-contract.md` §2. `_id` MUST be a UUID serialized as a lowercase hyphenated string (the frontend treats it as an opaque string; no 24-hex format is required). `__v` MUST always be `0` (the frontend does not read this field; it is present for wire-format compatibility only).
 - **FR-014**: Date-range boundaries MUST be calculated using the `Asia/Ho_Chi_Minh` timezone (or the value of the `TZ` environment variable if set); the start of `week` is Monday.
@@ -111,7 +111,7 @@ A user can see how many active and completed tasks exist within the selected dat
 
 - **SC-001**: The existing React frontend operates against the new backend without any frontend code changes — all user flows (create, rename, complete, reopen, delete, filter, paginate) work end-to-end.
 - **SC-002**: Every business rule in `docs/api-contract.md` §4 is covered by an automated test that fails against an empty implementation before the implementation is written.
-- **SC-003**: A fresh developer environment can reach a working health-check response by running two commands (start infrastructure + start the server).
+- **SC-003**: After a one-time local configuration copy (`.env` and `appsettings.Development.json` from the committed templates), a fresh developer environment can reach a working health-check response by running two commands (start infrastructure + start the server).
 - **SC-004**: All automated tests pass before any feature change is committed to the main line.
 - **SC-005**: The task list response returns in under 1 second for a dataset of up to 10,000 tasks under normal single-user load.
 
