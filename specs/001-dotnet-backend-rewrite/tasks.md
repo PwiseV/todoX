@@ -97,7 +97,7 @@ description: "Task list for the .NET backend rewrite of todoX"
   - a static `FromEntity(TaskEntity)` mapper
 
   Property order must match api-contract §2: `_id, title, status, completedAt, createdAt, updatedAt, __v`.
-- [ ] T018 Wire `backend-dotnet/TodoX.Api/Program.cs`:
+- [X] T018 Wire `backend-dotnet/TodoX.Api/Program.cs`:
   - `AddControllers().AddJsonOptions(...)`: camelCase names, register both converters from T012 globally, and **do not** set `DefaultIgnoreCondition` (nulls must be serialized)
   - `AddSingleton(TimeProvider.System)`
   - `AddExceptionHandler<GlobalExceptionHandler>()` and `AddProblemDetails()` (without it, `UseExceptionHandler()` throws at startup), then `app.UseExceptionHandler()`
