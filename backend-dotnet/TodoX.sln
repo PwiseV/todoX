@@ -5,6 +5,8 @@ VisualStudioVersion = 17.0.31903.59
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TodoX.Api", "TodoX.Api\TodoX.Api.csproj", "{56438E97-E629-4843-B148-24EC9740D1FB}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TodoX.Tests", "TodoX.Tests\TodoX.Tests.csproj", "{45541EA7-7D3D-4540-B42D-7DD33F92DB4B}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -27,6 +29,18 @@ Global
 		{56438E97-E629-4843-B148-24EC9740D1FB}.Release|x64.Build.0 = Release|Any CPU
 		{56438E97-E629-4843-B148-24EC9740D1FB}.Release|x86.ActiveCfg = Release|Any CPU
 		{56438E97-E629-4843-B148-24EC9740D1FB}.Release|x86.Build.0 = Release|Any CPU
+		{45541EA7-7D3D-4540-B42D-7DD33F92DB4B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{45541EA7-7D3D-4540-B42D-7DD33F92DB4B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{45541EA7-7D3D-4540-B42D-7DD33F92DB4B}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{45541EA7-7D3D-4540-B42D-7DD33F92DB4B}.Debug|x64.Build.0 = Debug|Any CPU
+		{45541EA7-7D3D-4540-B42D-7DD33F92DB4B}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{45541EA7-7D3D-4540-B42D-7DD33F92DB4B}.Debug|x86.Build.0 = Debug|Any CPU
+		{45541EA7-7D3D-4540-B42D-7DD33F92DB4B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{45541EA7-7D3D-4540-B42D-7DD33F92DB4B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{45541EA7-7D3D-4540-B42D-7DD33F92DB4B}.Release|x64.ActiveCfg = Release|Any CPU
+		{45541EA7-7D3D-4540-B42D-7DD33F92DB4B}.Release|x64.Build.0 = Release|Any CPU
+		{45541EA7-7D3D-4540-B42D-7DD33F92DB4B}.Release|x86.ActiveCfg = Release|Any CPU
+		{45541EA7-7D3D-4540-B42D-7DD33F92DB4B}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
