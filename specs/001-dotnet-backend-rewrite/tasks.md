@@ -182,7 +182,7 @@ description: "Task list for the .NET backend rewrite of todoX"
 
 ### PUT /api/tasks/{id}: validation, rename, status, 404, DF-02
 
-- [ ] T029 [US1] **Test first**: write `backend-dotnet/TodoX.Tests/Integration/TasksControllerTests.Update.cs` (partial class):
+- [X] T029 [US1] **Test first**: write `backend-dotnet/TodoX.Tests/Integration/TasksControllerTests.Update.cs` (partial class):
   - `PutTask_ValidRename_Returns200`: the title is updated, `createdAt` is unchanged, and `updatedAt` equals the advanced fake clock and differs from `createdAt`.
   - `PutTask_PaddedTitle_StoresTrimmed`: `"  Padded task  "` becomes `"Padded task"`.
   - `PutTask_BlankTitle_Returns400`: `"   "` returns 400 `{ "message": "Tiêu đề nhiệm vụ không được để trống" }`.
