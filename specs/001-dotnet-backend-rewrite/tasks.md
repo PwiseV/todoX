@@ -203,7 +203,7 @@ description: "Task list for the .NET backend rewrite of todoX"
   - save and return the entity
 
   `Rename_TrimsTitle_BeforeSave` from T025 turns green. Depends on T029.
-- [ ] T031 [US1] Add `PUT {id}` to `backend-dotnet/TodoX.Api/Controllers/TasksController.cs`. `id` is a raw `string` with **no** `:guid` constraint. Validation order:
+- [X] T031 [US1] Add `PUT {id}` to `backend-dotnet/TodoX.Api/Controllers/TasksController.cs`. `id` is a raw `string` with **no** `:guid` constraint. Validation order:
   1. If `dto.Title != null && string.IsNullOrWhiteSpace(dto.Title)`, return 400 "Tiêu đề nhiệm vụ không được để trống".
   2. If `dto.Status != null` and it is not `"active"` or `"complete"`, return 400 "Dữ liệu nhiệm vụ không hợp lệ".
   3. Build a `TaskUpdate` (completedAt handling comes in T033; for now `CompletedAtSpecified = false`).
