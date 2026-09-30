@@ -54,7 +54,19 @@ public class TaskService(AppDbContext db, TimeProvider timeProvider) : ITaskServ
         return task;
     }
 
-    public Task<TaskEntity?> DeleteAsync(string id) => throw new NotImplementedException();
+    public async Task<TaskEntity?> DeleteAsync(string id)
+    {
+        // Guid.Parse throws FormatException for a malformed id; left unhandled on purpose (DF-02).
+        var task = await db.Tasks.FindAsync(Guid.Parse(id));
+        if (task is null)
+        {
+            return null;
+        }
+
+        db.Tasks.Remove(task);
+        await db.SaveChangesAsync();
+        return task;
+    }
 
     private DateTime Now() => DateTimeTruncation.TruncateToMilliseconds(timeProvider.GetUtcNow().UtcDateTime);
 }

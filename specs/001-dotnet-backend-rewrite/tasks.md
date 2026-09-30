@@ -238,7 +238,7 @@ description: "Task list for the .NET backend rewrite of todoX"
   - `DeleteTask_MalformedId_Returns500`: `not-a-valid-uuid` returns 500 `{ "message": "Lỗi hệ thống" }` (DF-02).
 
   The tests must run red. Depends on T031.
-- [ ] T035 [US1] Implement `TaskService.DeleteAsync` in `backend-dotnet/TodoX.Api/Services/TaskService.cs` (`Guid.Parse` throws when malformed; find, remove, save, return the removed entity or `null`) and add `DELETE {id}` to `backend-dotnet/TodoX.Api/Controllers/TasksController.cs` (raw `string id`; `null` returns 404 "Nhiệm vụ không tồn tại!"; otherwise 200 `TaskResponseDto`). T034 turns green. Depends on T034.
+- [X] T035 [US1] Implement `TaskService.DeleteAsync` in `backend-dotnet/TodoX.Api/Services/TaskService.cs` (`Guid.Parse` throws when malformed; find, remove, save, return the removed entity or `null`) and add `DELETE {id}` to `backend-dotnet/TodoX.Api/Controllers/TasksController.cs` (raw `string id`; `null` returns 404 "Nhiệm vụ không tồn tại!"; otherwise 200 `TaskResponseDto`). T034 turns green. Depends on T034.
 
 **Checkpoint**: US1 is complete. All `TaskServiceTests` and `TasksControllerTests.{Create,Update,CompletedAt,Delete}` pass. Quickstart V-01 through V-05 and V-07 pass via curl.
 

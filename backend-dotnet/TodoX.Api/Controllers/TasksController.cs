@@ -51,6 +51,20 @@ public class TasksController(ITaskService taskService) : ControllerBase
         return Ok(TaskResponseDto.FromEntity(task));
     }
 
+    // Raw string id, as for PUT: a malformed id becomes 500 (DF-02).
+    [HttpDelete("{id}")]
+    public async Task<IActionResult> Delete(string id)
+    {
+        var task = await taskService.DeleteAsync(id);
+        if (task is null)
+        {
+            // The trailing "!" differs from PUT's 404 on purpose (DF-03).
+            return NotFound(new { message = "Nhiệm vụ không tồn tại!" });
+        }
+
+        return Ok(TaskResponseDto.FromEntity(task));
+    }
+
     /// <summary>
     /// Maps the three wire states of completedAt (research.md R-01): absent leaves it unchanged,
     /// null clears it, an ISO string sets it. Returns false for an unparseable string or any other
