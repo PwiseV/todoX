@@ -194,7 +194,7 @@ description: "Task list for the .NET backend rewrite of todoX"
   - `PutTask_MalformedId_BlankTitle_Returns400`: title validation runs before id parsing (research.md R-03).
 
   The tests must run red. Depends on T028.
-- [ ] T030 [US1] Implement `TaskService.UpdateAsync` in `backend-dotnet/TodoX.Api/Services/TaskService.cs`:
+- [X] T030 [US1] Implement `TaskService.UpdateAsync` in `backend-dotnet/TodoX.Api/Services/TaskService.cs`:
   - `Guid.Parse(id)`, and let `FormatException` propagate (DF-02)
   - find by id and return `null` if missing
   - apply `Title.Trim()` if non-null and `Status` if non-null
