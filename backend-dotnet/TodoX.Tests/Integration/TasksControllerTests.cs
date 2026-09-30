@@ -1,6 +1,10 @@
+using System.Net;
 using System.Net.Http.Json;
+using System.Text;
 using System.Text.Json;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Time.Testing;
+using TodoX.Api.Entities;
 using TodoX.Tests.Integration.Fixtures;
 
 namespace TodoX.Tests.Integration;
@@ -55,5 +59,24 @@ public partial class TasksControllerTests(PostgresContainerFixture db) : IAsyncL
     {
         using var document = await JsonDocument.ParseAsync(await response.Content.ReadAsStreamAsync());
         return document.RootElement.Clone();
+    }
+
+    /// <summary>Sends <paramref name="json"/> verbatim, so tests control exactly which fields are present.</summary>
+    private static StringContent Json(string json) => new(json, Encoding.UTF8, "application/json");
+
+    /// <summary>Asserts the status and that the body is exactly <c>{ "message": ... }</c>.</summary>
+    private static async Task AssertMessageAsync(HttpResponseMessage response, HttpStatusCode status, string message)
+    {
+        Assert.Equal(status, response.StatusCode);
+        var body = await ReadJsonAsync(response);
+        Assert.Equal(["message"], body.EnumerateObject().Select(p => p.Name));
+        Assert.Equal(message, body.GetProperty("message").GetString());
+    }
+
+    /// <summary>Reads the stored row through a fresh context; null when it does not exist.</summary>
+    private async Task<TaskEntity?> FindInDbAsync(string id)
+    {
+        await using var context = db.CreateDbContext();
+        return await context.Tasks.AsNoTracking().SingleOrDefaultAsync(t => t.Id == Guid.Parse(id));
     }
 }

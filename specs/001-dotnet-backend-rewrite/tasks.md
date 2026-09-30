@@ -169,7 +169,7 @@ description: "Task list for the .NET backend rewrite of todoX"
 
 ### POST /api/tasks
 
-- [ ] T027 [US1] **Test first**: write `backend-dotnet/TodoX.Tests/Integration/TasksControllerTests.Create.cs` (partial class):
+- [X] T027 [US1] **Test first**: write `backend-dotnet/TodoX.Tests/Integration/TasksControllerTests.Create.cs` (partial class):
   - `PostTask_ValidTitle_Returns201WithFullShape`: 201. Body has exactly the keys `_id, title, status, completedAt, createdAt, updatedAt, __v`. `_id` matches `^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$`. `status == "active"`, `completedAt` is JSON null (present, not omitted), `__v == 0`, `createdAt == updatedAt`, and both match the V-07 regex.
   - `PostTask_PaddedTitle_StoresTrimmed`: `"  x  "` returns title `"x"`, and a DB read confirms `"x"`.
   - `PostTask_EmptyTitle_Returns500`: `{ "title": "" }` returns 500 `{ "message": "Lỗi hệ thống" }`.
