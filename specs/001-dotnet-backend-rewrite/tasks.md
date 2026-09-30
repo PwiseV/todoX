@@ -147,7 +147,7 @@ description: "Task list for the .NET backend rewrite of todoX"
   - `Deserialize_StringCompletedAt_IsString`: theory over `"2026-09-28T03:00:00.000Z"` and `"2026-09-28T10:00:00.000+07:00"`; each gives `ValueKind == String`
 
   These guard the model binding and pass once the DTO exists. They are exempt from the red requirement because they check framework binding, not a §4 business rule. Persisting the `+07:00` string as UTC is tested in T032.
-- [ ] T025 [US1] **Test first (title trimming, service level)**: create the stub `backend-dotnet/TodoX.Api/Services/ITaskService.cs` with:
+- [X] T025 [US1] **Test first (title trimming, service level)**: create the stub `backend-dotnet/TodoX.Api/Services/ITaskService.cs` with:
   - `Task<TaskEntity> CreateAsync(string? title)`
   - `Task<TaskEntity?> UpdateAsync(string id, TaskUpdate update)`, which returns null when not found
   - `Task<TaskEntity?> DeleteAsync(string id)`

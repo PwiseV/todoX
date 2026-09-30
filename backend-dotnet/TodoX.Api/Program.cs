@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using TodoX.Api.Data;
 using TodoX.Api.Infrastructure;
+using TodoX.Api.Services;
 
 const string FrontendCorsPolicy = "Frontend";
 
@@ -18,6 +19,7 @@ builder.Services.AddControllers()
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("TodoX")));
 builder.Services.AddSingleton(TimeProvider.System);
+builder.Services.AddScoped<ITaskService, TaskService>();
 
 builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
 builder.Services.AddProblemDetails();
