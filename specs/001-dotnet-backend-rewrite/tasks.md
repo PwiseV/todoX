@@ -222,7 +222,7 @@ description: "Task list for the .NET backend rewrite of todoX"
   - `PutTask_InvalidCompletedAt_Returns400_WithInvalidDataMessage`: `{ "status": "complete", "completedAt": "not-a-date" }` returns 400 `{ "message": "Dữ liệu nhiệm vụ không hợp lệ" }`, and the stored task is unchanged.
 
   The tests must run red. Depends on T031.
-- [ ] T033 [US1] Implement three-state `completedAt` handling in `backend-dotnet/TodoX.Api/Controllers/TasksController.cs` (PUT action), after title/status validation and before the service call:
+- [X] T033 [US1] Implement three-state `completedAt` handling in `backend-dotnet/TodoX.Api/Controllers/TasksController.cs` (PUT action), after title/status validation and before the service call:
   - `dto.CompletedAt.ValueKind == Undefined` (field absent): `CompletedAtSpecified = false`
   - `ValueKind == Null`: specified, value `null`
   - `ValueKind == String`: `dto.CompletedAt.GetDateTimeOffset().UtcDateTime`, then `DateTimeTruncation.TruncateToMilliseconds`. **Do not use `GetDateTime()`**: it returns `Kind == Local` for offset strings such as `+07:00`, and Npgsql `timestamptz` requires `Kind == Utc`. A `FormatException` returns 400 "Dữ liệu nhiệm vụ không hợp lệ". The `try/catch` wraps only the parse, not the service call, so `Guid.Parse`'s `FormatException` still gives 500 (DF-02).

@@ -1,5 +1,7 @@
+using System.Text.Json;
 using Microsoft.AspNetCore.Mvc;
 using TodoX.Api.DTOs;
+using TodoX.Api.Infrastructure;
 using TodoX.Api.Services;
 
 namespace TodoX.Api.Controllers;
@@ -34,7 +36,12 @@ public class TasksController(ITaskService taskService) : ControllerBase
             return BadRequest(new { message = "Dữ liệu nhiệm vụ không hợp lệ" });
         }
 
-        var update = new TaskUpdate(dto.Title, dto.Status, CompletedAtSpecified: false, CompletedAt: null);
+        if (!TryReadCompletedAt(dto.CompletedAt, out var completedAtSpecified, out var completedAt))
+        {
+            return BadRequest(new { message = "Dữ liệu nhiệm vụ không hợp lệ" });
+        }
+
+        var update = new TaskUpdate(dto.Title, dto.Status, completedAtSpecified, completedAt);
         var task = await taskService.UpdateAsync(id, update);
         if (task is null)
         {
@@ -42,5 +49,38 @@ public class TasksController(ITaskService taskService) : ControllerBase
         }
 
         return Ok(TaskResponseDto.FromEntity(task));
+    }
+
+    /// <summary>
+    /// Maps the three wire states of completedAt (research.md R-01): absent leaves it unchanged,
+    /// null clears it, an ISO string sets it. Returns false for an unparseable string or any other
+    /// JSON kind, which the caller turns into 400 (api-contract §5.8, §8).
+    /// </summary>
+    private static bool TryReadCompletedAt(JsonElement element, out bool specified, out DateTime? value)
+    {
+        specified = element.ValueKind != JsonValueKind.Undefined;
+        value = null;
+
+        switch (element.ValueKind)
+        {
+            case JsonValueKind.Undefined:
+            case JsonValueKind.Null:
+                return true;
+            case JsonValueKind.String:
+                // GetDateTimeOffset, not GetDateTime: the latter returns Kind=Local for "+07:00"
+                // strings, which Npgsql rejects for timestamptz (research.md R-11).
+                // Only the parse is guarded, so Guid.Parse's FormatException still yields 500 (DF-02).
+                try
+                {
+                    value = DateTimeTruncation.TruncateToMilliseconds(element.GetDateTimeOffset().UtcDateTime);
+                    return true;
+                }
+                catch (FormatException)
+                {
+                    return false;
+                }
+            default:
+                return false;
+        }
     }
 }
