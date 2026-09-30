@@ -178,7 +178,7 @@ description: "Task list for the .NET backend rewrite of todoX"
   - `PostTask_ExtraFields_Ignored`: `{ "title": "a", "status": "complete" }` returns `status == "active"`.
 
   The tests must run red. Depends on T026.
-- [ ] T028 [US1] Create `backend-dotnet/TodoX.Api/Controllers/TasksController.cs`: `[ApiController]`, `[Route("api/tasks")]`, `POST` takes `[FromBody] CreateTaskDto` and calls `CreateAsync(dto.Title)`. It returns `StatusCode(201, TaskResponseDto.FromEntity(...))` with no `CreatedAtAction` (the Location header is unnecessary). The controller has no try/catch; errors reach the global handler. T027 turns green. Depends on T027.
+- [X] T028 [US1] Create `backend-dotnet/TodoX.Api/Controllers/TasksController.cs`: `[ApiController]`, `[Route("api/tasks")]`, `POST` takes `[FromBody] CreateTaskDto` and calls `CreateAsync(dto.Title)`. It returns `StatusCode(201, TaskResponseDto.FromEntity(...))` with no `CreatedAtAction` (the Location header is unnecessary). The controller has no try/catch; errors reach the global handler. T027 turns green. Depends on T027.
 
 ### PUT /api/tasks/{id}: validation, rename, status, 404, DF-02
 
