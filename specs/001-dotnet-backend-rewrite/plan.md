@@ -79,13 +79,14 @@ Rewrite the todoX backend as an ASP.NET Core 10 Web API (controllers, EF Core + 
 
 ### 1. Partial PUT — distinguishing `null` from absent
 
-`UpdateTaskDto.CompletedAt` is typed as `JsonElement?` (nullable value type).
+`UpdateTaskDto.CompletedAt` is typed as `JsonElement` (**not** nullable). `JsonElement?` was rejected: System.Text.Json gives `HasValue == false` for both an absent field and an explicit JSON `null`, so it cannot tell Reopen from Rename (research.md R-01).
 
 | Wire value | C# value | Interpretation |
 |-----------|----------|----------------|
-| Field absent from JSON | `null` (`HasValue = false`) | Do not touch `CompletedAt` in DB |
-| `"completedAt": null` | `JsonElement` with `ValueKind.Null` | Set `CompletedAt = null` in DB |
-| `"completedAt": "2026-..."` | `JsonElement` with `ValueKind.String` | Parse and set `CompletedAt` to the date |
+| Field absent from JSON | `default(JsonElement)`, `ValueKind.Undefined` | Do not touch `CompletedAt` in DB |
+| `"completedAt": null` | `ValueKind.Null` | Set `CompletedAt = null` in DB |
+| `"completedAt": "2026-..."` | `ValueKind.String` | Parse (§10) and set `CompletedAt` to the date |
+| Number, boolean, object, array | any other `ValueKind` | 400 `{ "message": "Dữ liệu nhiệm vụ không hợp lệ" }` (api-contract §8) |
 
 This is the only field that requires this treatment. `Title` and `Status` follow the conventional `string?` pattern (null = absent = ignore).
 
@@ -176,11 +177,11 @@ Trimming happens once in the service layer to keep the DB and the response DTO c
 
 ### 10. PUT `completedAt` parsing (Npgsql UTC constraint)
 
-Npgsql accepts only `DateTime` values with `Kind == Utc` for `timestamptz` columns. `DateTime.Parse(...)` returns `DateTimeKind.Local`, which would throw at `SaveChangesAsync` and produce a spurious 500 — breaking the Complete button on the frontend. Correct parsing pipeline when `dto.CompletedAt.Value.ValueKind == JsonValueKind.String`:
+Npgsql accepts only `DateTime` values with `Kind == Utc` for `timestamptz` columns. `DateTime.Parse(...)` returns `DateTimeKind.Local`, which would throw at `SaveChangesAsync` and produce a spurious 500 — breaking the Complete button on the frontend. Correct parsing pipeline when `dto.CompletedAt.ValueKind == JsonValueKind.String`:
 
-1. `dto.CompletedAt.Value.GetDateTime()` — returns UTC-kind for ISO strings ending in `Z` (equivalent to `DateTimeOffset.Parse(str, CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind).UtcDateTime`).
+1. `dto.CompletedAt.GetDateTimeOffset().UtcDateTime` — always `Kind == Utc` at the correct instant, for strings ending in `Z` and for offset strings such as `+07:00`. Do **not** use `GetDateTime()`: it returns `Kind == Local` for offset strings, which Npgsql rejects (research.md R-01, R-11).
 2. Truncate to milliseconds using the same helper as `CreatedAt`/`UpdatedAt`.
-3. Wrap step 1 in `try/catch (FormatException)`; on failure return 400 `{ "message": "Dữ liệu nhiệm vụ không hợp lệ" }` (matches api-contract §5.8: invalid date strings surface the generic validation-error message, not 500).
+3. Wrap step 1 (only) in `try/catch (FormatException)`; on failure return 400 `{ "message": "Dữ liệu nhiệm vụ không hợp lệ" }` (matches api-contract §5.8: invalid date strings surface the generic validation-error message, not 500).
 
 ### 11. Local Postgres — trust auth, localhost-only (two-command bootstrap)
 
@@ -252,7 +253,7 @@ backend-dotnet/
 │   ├── DTOs/
 │   │   ├── TaskResponseDto.cs           wire shape; _id/__v via JsonPropertyName
 │   │   ├── CreateTaskDto.cs             { title: string? }; no [Required] — DF-01
-│   │   ├── UpdateTaskDto.cs             partial; CompletedAt: JsonElement?
+│   │   ├── UpdateTaskDto.cs             partial; CompletedAt: JsonElement (not nullable)
 │   │   └── TaskListResponseDto.cs       tasks + counts + pagination fields
 │   ├── Entities/
 │   │   └── TaskEntity.cs                EF Core entity; Guid PK
@@ -278,7 +279,8 @@ backend-dotnet/
 │   │   ├── StatusMappingTests.cs        "completed" → "complete" filter mapping
 │   │   ├── MillisecondDateTimeConverterTests.cs   3-frac-digit wire format
 │   │   ├── DateTimeTruncationTests.cs   ms truncation helper
-│   │   └── GlobalExceptionHandlerTests.cs   500 body + content type
+│   │   ├── GlobalExceptionHandlerTests.cs   500 body + content type
+│   │   └── UpdateTaskDtoBindingTests.cs completedAt absent/null/string → ValueKind
 │   ├── Integration/
 │   │   ├── TasksControllerTests.cs      partial class: shared setup/helpers
 │   │   ├── TasksControllerTests.Create.cs       POST

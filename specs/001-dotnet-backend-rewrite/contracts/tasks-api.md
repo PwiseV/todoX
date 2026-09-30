@@ -117,7 +117,7 @@ Any subset of:
 Field rules:
 - `title`: if present and non-null, must be a non-blank string after `trim()`. Blank → 400. The trimmed value is stored (so `"  x  "` is persisted as `"x"`).
 - `status`: if present, must be `"active"` or `"complete"`. Other values → 400.
-- `completedAt`: three states — absent (leave unchanged), JSON null (clear to null), ISO string (parse as UTC via `JsonElement.GetDateTime()`, truncate to ms, then store). An unparseable date string → 400 (api-contract §5.8). A number or boolean → 400 (see api-contract §8).
+- `completedAt`: three states — absent (leave unchanged), JSON null (clear to null), ISO string (parse as UTC via `JsonElement.GetDateTimeOffset().UtcDateTime`, so `Z` and offset strings like `+07:00` both store the correct UTC instant; truncate to ms, then store). An unparseable date string → 400 (api-contract §5.8). A number or boolean → 400 (see api-contract §8).
 - Absent fields are not written to the DB.
 
 ### Responses

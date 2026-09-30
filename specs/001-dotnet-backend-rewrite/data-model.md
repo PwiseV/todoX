@@ -87,13 +87,20 @@ Default values on create:
 {
   "title":       string?       // null or absent = ignore; present non-null = trim, then apply
   "status":      string?       // null or absent = ignore; "active"/"complete" = apply; other = 400
-  "completedAt": JsonElement?  // absent = ignore; JSON null = clear; ISO string = parse UTC + truncate to ms
+  "completedAt": JsonElement   // NOT nullable; branch on ValueKind (table below)
 }
 ```
 
-`CompletedAt` as `JsonElement?` is the mechanism that distinguishes JSON null from absent (see research.md R-01).
+`CompletedAt` as a non-nullable `JsonElement` is the mechanism that distinguishes JSON null from absent (see research.md R-01). `JsonElement?` cannot: System.Text.Json yields `HasValue == false` for both.
 
-**`completedAt` parsing** (see plan.md §10, research.md R-11): when `ValueKind == JsonValueKind.String`, parse via `JsonElement.GetDateTime()` (returns UTC-kind, required by Npgsql for `timestamptz`) and truncate to milliseconds. An unparseable date string returns HTTP 400 `{ "message": "Dữ liệu nhiệm vụ không hợp lệ" }` — not 500 — matching api-contract §5.8.
+| Wire state | `CompletedAt.ValueKind` | Effect on `TaskEntity.CompletedAt` |
+|-----------|-------------------------|------------------------------------|
+| Field absent | `Undefined` (`default(JsonElement)`) | Unchanged |
+| `"completedAt": null` | `Null` | Set to `null` |
+| `"completedAt": "<ISO 8601>"` | `String` | Parsed to UTC, truncated to ms, stored |
+| Number, boolean, object, array | any other kind | Not applied; 400 `{ "message": "Dữ liệu nhiệm vụ không hợp lệ" }` (api-contract §8) |
+
+**`completedAt` parsing** (see plan.md §10, research.md R-11): when `ValueKind == JsonValueKind.String`, parse via `JsonElement.GetDateTimeOffset().UtcDateTime` (always `Kind == Utc`, as Npgsql requires for `timestamptz`; `"…+07:00"` is converted to the matching `Z` instant) and truncate to milliseconds. Do not use `GetDateTime()`, which returns `Kind == Local` for offset strings. An unparseable date string returns HTTP 400 `{ "message": "Dữ liệu nhiệm vụ không hợp lệ" }` — not 500 — matching api-contract §5.8.
 
 ### `TaskListResponseDto` — GET /api/tasks response
 

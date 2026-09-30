@@ -15,17 +15,19 @@ All NEEDS CLARIFICATION items from the plan are resolved here. Decisions are fin
 
 With a plain `DateTime? CompletedAt` property, System.Text.Json maps both "absent" and "JSON null" to `null`. The server cannot distinguish them.
 
-**Decision**: Type `CompletedAt` as `JsonElement?` in `UpdateTaskDto`.
+**Decision**: Type `CompletedAt` as `JsonElement` (**not** nullable) in `UpdateTaskDto`, and branch on `ValueKind`.
 
 | Wire state | C# result | Controller action |
 |-----------|-----------|-------------------|
-| Absent | `null` (no value) | Leave DB field unchanged |
-| `"completedAt": null` | `JsonElement` with `ValueKind == JsonValueKind.Null` | Write `null` to DB |
-| `"completedAt": "2026-..."` | `JsonElement` with `ValueKind == JsonValueKind.String` | Parse and write date to DB |
+| Absent | `default(JsonElement)`, `ValueKind == JsonValueKind.Undefined` | Leave DB field unchanged |
+| `"completedAt": null` | `ValueKind == JsonValueKind.Null` | Write `null` to DB |
+| `"completedAt": "2026-..."` | `ValueKind == JsonValueKind.String` | Parse (R-11) and write date to DB |
+| Any other kind (number, boolean, object, array) | `ValueKind` is `Number`/`True`/`False`/`Object`/`Array` | 400 `{ "message": "Dữ liệu nhiệm vụ không hợp lệ" }` (api-contract §8; unchanged behavior) |
 
-The `HasValue` property on `JsonElement?` distinguishes absent (false) from present (true). When present, `ValueKind` distinguishes null from a real value.
+**Rationale**: System.Text.Json never calls the setter for a property that is absent from the payload, so the property keeps `default(JsonElement)`, whose `ValueKind` is `Undefined`. For a present JSON `null`, the non-nullable `JsonElement` converter captures the token itself, so `ValueKind` is `Null`. One property therefore carries all three states without a custom converter or binder. Verified empirically on .NET 10 (2026-09-30) with `JsonSerializerDefaults.Web`: `{}` → `Undefined`, `{"completedAt":null}` → `Null`, `{"completedAt":"2026-09-28T03:00:00Z"}` → `String`.
 
 **Alternatives considered**:
+- `JsonElement?` (`Nullable<JsonElement>`) — **rejected; this was the original R-01 decision and it is wrong.** System.Text.Json's nullable converter maps a JSON `null` token to `null` before the inner `JsonElement` converter runs, so `HasValue == false` both when the field is absent **and** when it is explicitly `null`. The Reopen payload (`{ "status": "active", "completedAt": null }`) would then be treated as absent and leave `completedAt` unchanged. Found by the Phase 1–2 review, which reproduced it in a scratch app on .NET 10.
 - `JsonMergePatch` library — adds a dependency; unnecessary given the single field needing this treatment.
 - Custom model binder — more complex; same outcome.
 - `JsonDocument` in controller action — works but bypasses model binding entirely; less idiomatic.
@@ -33,6 +35,10 @@ The `HasValue` property on `JsonElement?` distinguishes absent (false) from pres
 **How it is tested**: Two integration tests on the same pre-created task:
 1. `PUT { "status": "active", "completedAt": null }` → GET task → `completedAt` is JSON null.
 2. Complete a task with a non-null `completedAt` (`PUT { "status": "complete", "completedAt": "2026-09-28T03:00:00.000Z" }`), then send a rename-only `PUT { "title": "renamed" }` → `completedAt` is unchanged (still the non-null value). Matches tasks.md T032 `PutTask_RenameOnly_LeavesCompletedAtUnchanged`; a null-before/null-after check could not distinguish absent from null.
+
+The binding itself is also pinned by a deserialization unit test (tasks.md T024) that asserts `Undefined` / `Null` / `String` for the three payloads, so a regression to `JsonElement?` fails fast without Docker.
+
+**Parsing risk — `GetDateTime()` vs `GetDateTimeOffset()`**: `JsonElement.GetDateTime()` returns `DateTimeKind.Utc` only for strings ending in `Z`. For a string with an explicit offset such as `"2026-09-28T10:00:00+07:00"` it converts to the **machine's local time** and returns `DateTimeKind.Local`, which Npgsql rejects for `timestamptz` at `SaveChangesAsync` (spurious 500). The string branch MUST therefore use `GetDateTimeOffset().UtcDateTime`, which always yields `Kind == Utc` at the correct instant (`+07:00` 10:00 → `03:00Z`). See R-11.
 
 ---
 
@@ -196,20 +202,22 @@ Controller-level 400 responses (`title` blank on PUT, status enum on PUT) are re
 1. Npgsql (the PostgreSQL EF Core provider) requires `DateTime` values with `Kind == DateTimeKind.Utc` for `timestamptz` columns. Passing a `Local`-kind value throws at `SaveChangesAsync`.
 2. `DateTime.Parse("2026-09-28T03:00:00.000Z")` on many systems returns `DateTimeKind.Local` (because the parser normalizes the value to the local timezone). Using it directly would blow up on the Complete button — the single most common frontend action.
 
-**Decision**: Parse via `JsonElement.GetDateTime()`, which returns UTC-kind for ISO strings ending in `Z`. Equivalent explicit form: `DateTimeOffset.Parse(str, CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind).UtcDateTime`. Then truncate to milliseconds using the same helper as `CreatedAt`/`UpdatedAt` (see R-04) so the stored value round-trips exactly.
+**Decision**: Parse via `JsonElement.GetDateTimeOffset().UtcDateTime`, which returns `DateTimeKind.Utc` at the correct instant for any ISO 8601 string, whether it ends in `Z` or carries an offset such as `+07:00`. Do **not** use `JsonElement.GetDateTime()`: it returns `DateTimeKind.Local` for offset strings (see R-01 "Parsing risk"). Then truncate to milliseconds using the same helper as `CreatedAt`/`UpdatedAt` (see R-04) so the stored value round-trips exactly.
 
-**Pipeline** (only when `dto.CompletedAt.HasValue && dto.CompletedAt.Value.ValueKind == JsonValueKind.String`):
+**Pipeline** (only when `dto.CompletedAt.ValueKind == JsonValueKind.String`; see R-01 for `Undefined`/`Null`/other kinds):
 
 ```
 try
-    parsed    = dto.CompletedAt.Value.GetDateTime()          // UTC kind
-    truncated = TruncateToMs(parsed)                          // millisecond precision
-    entity.CompletedAt = truncated                            // safe to persist
+    parsed    = dto.CompletedAt.GetDateTimeOffset().UtcDateTime   // Kind == Utc, offset applied
+    truncated = TruncateToMs(parsed)                              // millisecond precision
+    entity.CompletedAt = truncated                                // safe to persist
 catch (FormatException)
     return 400 { "message": "Dữ liệu nhiệm vụ không hợp lệ" }
 ```
 
-**Why 400 not 500 for invalid dates**: api-contract §5.8 documents that an unparseable `completedAt` in the original backend surfaces as `ValidationError` from Mongoose → controller catch → 400 with the generic `"Dữ liệu nhiệm vụ không hợp lệ"` message. The .NET rewrite preserves this by catching `FormatException` from `GetDateTime()` and returning the same 400. It does not fall through to the global 500 handler.
+The `try/catch` wraps only the parse, never the service call, so the `FormatException` from `Guid.Parse` on a malformed id still reaches the global handler as 500 (DF-02).
+
+**Why 400 not 500 for invalid dates**: api-contract §5.8 documents that an unparseable `completedAt` in the original backend surfaces as `ValidationError` from Mongoose → controller catch → 400 with the generic `"Dữ liệu nhiệm vụ không hợp lệ"` message. The .NET rewrite preserves this by catching `FormatException` from `GetDateTimeOffset()` and returning the same 400. It does not fall through to the global 500 handler.
 
 **Tests**:
 - Integration: `TasksControllerTests.PutTask_FrontendCompletePayload_PersistsUtc` — send the exact payload the frontend sends on Complete: `{ "status": "complete", "completedAt": "2026-09-28T03:00:00.000Z" }`. Assert HTTP 200. Assert `completedAt` in the response equals the input string exactly (round-trip test — ISO parse → UTC store → serializer → same 3-fractional-digit output).

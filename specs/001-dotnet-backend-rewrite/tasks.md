@@ -139,7 +139,14 @@ description: "Task list for the .NET backend rewrite of todoX"
 - [ ] T024 [P] [US1] Create `backend-dotnet/TodoX.Api/DTOs/UpdateTaskDto.cs` with no validation attributes:
   - `string? Title`: null or absent means ignore
   - `string? Status`: null or absent means ignore
-  - `JsonElement? CompletedAt`: absent means `HasValue == false`, JSON null means `ValueKind == Null`, an ISO string means `ValueKind == String` (research.md R-01)
+  - `JsonElement CompletedAt` (**not** nullable): absent means `ValueKind == Undefined` (`default(JsonElement)`), JSON null means `ValueKind == Null`, an ISO string means `ValueKind == String` (research.md R-01). Do not use `JsonElement?`: it gives `HasValue == false` for both absent and null.
+
+  In the same task, write `backend-dotnet/TodoX.Tests/Unit/UpdateTaskDtoBindingTests.cs` (`[Trait("Category", "Unit")]`), which deserializes with `new JsonSerializerOptions(JsonSerializerDefaults.Web)` (the MVC default) and asserts the three states:
+  - `Deserialize_AbsentCompletedAt_IsUndefined`: `{ "title": "x" }` gives `ValueKind == Undefined`
+  - `Deserialize_NullCompletedAt_IsNull`: `{ "completedAt": null }` gives `ValueKind == Null`
+  - `Deserialize_StringCompletedAt_IsString`: theory over `"2026-09-28T03:00:00.000Z"` and `"2026-09-28T10:00:00.000+07:00"`; each gives `ValueKind == String`
+
+  These guard the model binding and pass once the DTO exists. They are exempt from the red requirement because they check framework binding, not a §4 business rule. Persisting the `+07:00` string as UTC is tested in T032.
 - [ ] T025 [US1] **Test first (title trimming, service level)**: create the stub `backend-dotnet/TodoX.Api/Services/ITaskService.cs` with:
   - `Task<TaskEntity> CreateAsync(string? title)`
   - `Task<TaskEntity?> UpdateAsync(string id, TaskUpdate update)`, which returns null when not found
@@ -209,16 +216,17 @@ description: "Task list for the .NET backend rewrite of todoX"
 - [ ] T032 [US1] **Test first**: write `backend-dotnet/TodoX.Tests/Integration/TasksControllerTests.CompletedAt.cs` (partial class):
   - `PutTask_FrontendCompletePayload_PersistsUtc`: `{ "status": "complete", "completedAt": "2026-09-28T03:00:00.000Z" }` returns 200 with `completedAt` equal to that exact string. A DB read shows `Kind == Utc` and the same instant.
   - `PutTask_CompletedAtWithSubMs_TruncatedToMs`: `"2026-09-28T03:00:00.1239Z"` round-trips as `"2026-09-28T03:00:00.123Z"`.
+  - `PutTask_CompletedAtWithOffset_StoredAsUtc`: `{ "status": "complete", "completedAt": "2026-09-28T10:00:00.000+07:00" }` returns 200 with `completedAt == "2026-09-28T03:00:00.000Z"`. A DB read shows `Kind == Utc` and that instant (guards against `GetDateTime()`, research.md R-01).
   - `PutTask_ReopenPayload_ClearsCompletedAt`: complete first, then `{ "status": "active", "completedAt": null }` returns `completedAt` as JSON null, and the DB shows null.
   - `PutTask_RenameOnly_LeavesCompletedAtUnchanged`: complete with a non-null `completedAt` first, then `{ "title": "renamed" }`. `completedAt` still equals the earlier value. It must be non-null, so absent and null are really distinguished.
   - `PutTask_InvalidCompletedAt_Returns400_WithInvalidDataMessage`: `{ "status": "complete", "completedAt": "not-a-date" }` returns 400 `{ "message": "Dữ liệu nhiệm vụ không hợp lệ" }`, and the stored task is unchanged.
 
   The tests must run red. Depends on T031.
 - [ ] T033 [US1] Implement three-state `completedAt` handling in `backend-dotnet/TodoX.Api/Controllers/TasksController.cs` (PUT action), after title/status validation and before the service call:
-  - `dto.CompletedAt.HasValue == false`: `CompletedAtSpecified = false`
+  - `dto.CompletedAt.ValueKind == Undefined` (field absent): `CompletedAtSpecified = false`
   - `ValueKind == Null`: specified, value `null`
-  - `ValueKind == String`: `GetDateTime()`, then `DateTimeTruncation.TruncateToMilliseconds`, then ensure `Kind == Utc`. A `FormatException` or `InvalidOperationException` returns 400 "Dữ liệu nhiệm vụ không hợp lệ".
-  - any other `ValueKind` (number, bool, object): 400 "Dữ liệu nhiệm vụ không hợp lệ"
+  - `ValueKind == String`: `dto.CompletedAt.GetDateTimeOffset().UtcDateTime`, then `DateTimeTruncation.TruncateToMilliseconds`. **Do not use `GetDateTime()`**: it returns `Kind == Local` for offset strings such as `+07:00`, and Npgsql `timestamptz` requires `Kind == Utc`. A `FormatException` returns 400 "Dữ liệu nhiệm vụ không hợp lệ". The `try/catch` wraps only the parse, not the service call, so `Guid.Parse`'s `FormatException` still gives 500 (DF-02).
+  - any other `ValueKind` (number, bool, object, array): 400 "Dữ liệu nhiệm vụ không hợp lệ"
 
   T032 turns green. Depends on T032.
 

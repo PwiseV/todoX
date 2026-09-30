@@ -130,7 +130,7 @@ Expected: HTTP 200; `completedAt` unchanged (still null from reopen above).
 PUT http://localhost:5001/api/tasks/{TASK_ID}
 { "status": "complete", "completedAt": "not-a-date" }
 ```
-Expected: HTTP 400; `{ "message": "Dữ liệu nhiệm vụ không hợp lệ" }` — `JsonElement.GetDateTime()` throws `FormatException`, caught in the controller.
+Expected: HTTP 400; `{ "message": "Dữ liệu nhiệm vụ không hợp lệ" }` — `JsonElement.GetDateTimeOffset()` throws `FormatException`, caught in the controller.
 
 ---
 
