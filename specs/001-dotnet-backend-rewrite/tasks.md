@@ -213,7 +213,7 @@ description: "Task list for the .NET backend rewrite of todoX"
 
 ### PUT: absent vs null `completedAt` (FR-003, research.md R-01, R-11)
 
-- [ ] T032 [US1] **Test first**: write `backend-dotnet/TodoX.Tests/Integration/TasksControllerTests.CompletedAt.cs` (partial class):
+- [X] T032 [US1] **Test first**: write `backend-dotnet/TodoX.Tests/Integration/TasksControllerTests.CompletedAt.cs` (partial class):
   - `PutTask_FrontendCompletePayload_PersistsUtc`: `{ "status": "complete", "completedAt": "2026-09-28T03:00:00.000Z" }` returns 200 with `completedAt` equal to that exact string. A DB read shows `Kind == Utc` and the same instant.
   - `PutTask_CompletedAtWithSubMs_TruncatedToMs`: `"2026-09-28T03:00:00.1239Z"` round-trips as `"2026-09-28T03:00:00.123Z"`.
   - `PutTask_CompletedAtWithOffset_StoredAsUtc`: `{ "status": "complete", "completedAt": "2026-09-28T10:00:00.000+07:00" }` returns 200 with `completedAt == "2026-09-28T03:00:00.000Z"`. A DB read shows `Kind == Utc` and that instant (guards against `GetDateTime()`, research.md R-01).
