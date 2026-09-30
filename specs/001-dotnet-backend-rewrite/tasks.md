@@ -135,7 +135,7 @@ description: "Task list for the .NET backend rewrite of todoX"
 
 ### DTOs and service contract
 
-- [ ] T023 [P] [US1] Create `backend-dotnet/TodoX.Api/DTOs/CreateTaskDto.cs`: `{ string? Title }` with **no validation attributes** (no `[Required]`, no `[MinLength]`). This is intentional for DF-01, so `[ApiController]` never auto-returns 400.
+- [X] T023 [P] [US1] Create `backend-dotnet/TodoX.Api/DTOs/CreateTaskDto.cs`: `{ string? Title }` with **no validation attributes** (no `[Required]`, no `[MinLength]`). This is intentional for DF-01, so `[ApiController]` never auto-returns 400.
 - [ ] T024 [P] [US1] Create `backend-dotnet/TodoX.Api/DTOs/UpdateTaskDto.cs` with no validation attributes:
   - `string? Title`: null or absent means ignore
   - `string? Status`: null or absent means ignore
