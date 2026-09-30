@@ -121,7 +121,7 @@ description: "Task list for the .NET backend rewrite of todoX"
 ### Health endpoint (FR-001)
 
 - [X] T021 **Test first**: write `backend-dotnet/TodoX.Tests/Integration/HealthControllerTests.cs` with `[Collection("Postgres")]` and test `GetHealth_ReturnsOkAndMillisecondTimestamp`. With a `FakeTimeProvider` fixed at `2026-09-28T02:15:00.123456Z`, `GET /api/health` returns 200 and `{ "status": "ok", "time": "2026-09-28T02:15:00.123Z" }`, and `time` matches the V-07 regex. The test must run red, because the route does not exist yet (404). Depends on T019.
-- [ ] T022 Implement `backend-dotnet/TodoX.Api/Controllers/HealthController.cs`: `[ApiController]`, route `api/health`, `GET` returns `{ status = "ok", time = timeProvider.GetUtcNow().UtcDateTime }`, serialized through the global converter. T021 turns green. Depends on T021.
+- [X] T022 Implement `backend-dotnet/TodoX.Api/Controllers/HealthController.cs`: `[ApiController]`, route `api/health`, `GET` returns `{ status = "ok", time = timeProvider.GetUtcNow().UtcDateTime }`, serialized through the global converter. T021 turns green. Depends on T021.
 
 **Checkpoint**: `dotnet test` is green. After `docker compose up -d` and `dotnet run --project TodoX.Api` (both in `backend-dotnet/`), `curl http://localhost:5001/api/health` returns the SC-003 response.
 
