@@ -232,7 +232,7 @@ description: "Task list for the .NET backend rewrite of todoX"
 
 ### DELETE /api/tasks/{id}
 
-- [ ] T034 [US1] **Test first**: write `backend-dotnet/TodoX.Tests/Integration/TasksControllerTests.Delete.cs` (partial class):
+- [X] T034 [US1] **Test first**: write `backend-dotnet/TodoX.Tests/Integration/TasksControllerTests.Delete.cs` (partial class):
   - `DeleteTask_Existing_Returns200WithDeletedTask`: the body is the full task shape with the same `_id`/`title`, and the row is gone in the DB.
   - `DeleteTask_Twice_Returns404_WithExclamation`: the second call returns 404 `{ "message": "Nhiệm vụ không tồn tại!" }` (DF-03, trailing `!`).
   - `DeleteTask_MalformedId_Returns500`: `not-a-valid-uuid` returns 500 `{ "message": "Lỗi hệ thống" }` (DF-02).
