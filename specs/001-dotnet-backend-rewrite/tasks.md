@@ -159,7 +159,7 @@ description: "Task list for the .NET backend rewrite of todoX"
   - `Create_SetsDefaults`: `Status == "active"`, `CompletedAt == null`, `CreatedAt == UpdatedAt == fake now truncated to ms`, Kind `Utc`
 
   The tests must run red. Depends on T020, T023, T024.
-- [ ] T026 [US1] Implement `TaskService.CreateAsync` in `backend-dotnet/TodoX.Api/Services/TaskService.cs`:
+- [X] T026 [US1] Implement `TaskService.CreateAsync` in `backend-dotnet/TodoX.Api/Services/TaskService.cs`:
   - `title?.Trim()`; a null title is passed through as null so the DB `NOT NULL` constraint fails (DF-01)
   - `Status = "active"`, `CompletedAt = null`
   - `CreatedAt = UpdatedAt = DateTimeTruncation.TruncateToMilliseconds(timeProvider.GetUtcNow().UtcDateTime)`
