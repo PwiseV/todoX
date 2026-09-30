@@ -136,7 +136,7 @@ description: "Task list for the .NET backend rewrite of todoX"
 ### DTOs and service contract
 
 - [X] T023 [P] [US1] Create `backend-dotnet/TodoX.Api/DTOs/CreateTaskDto.cs`: `{ string? Title }` with **no validation attributes** (no `[Required]`, no `[MinLength]`). This is intentional for DF-01, so `[ApiController]` never auto-returns 400.
-- [ ] T024 [P] [US1] Create `backend-dotnet/TodoX.Api/DTOs/UpdateTaskDto.cs` with no validation attributes:
+- [X] T024 [P] [US1] Create `backend-dotnet/TodoX.Api/DTOs/UpdateTaskDto.cs` with no validation attributes:
   - `string? Title`: null or absent means ignore
   - `string? Status`: null or absent means ignore
   - `JsonElement CompletedAt` (**not** nullable): absent means `ValueKind == Undefined` (`default(JsonElement)`), JSON null means `ValueKind == Null`, an ISO string means `ValueKind == String` (research.md R-01). Do not use `JsonElement?`: it gives `HasValue == false` for both absent and null.
