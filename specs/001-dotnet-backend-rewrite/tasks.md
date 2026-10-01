@@ -280,7 +280,7 @@ description: "Task list for the .NET backend rewrite of todoX"
 
 ### Pagination (api-contract §4.3, FR-011; parity with JS `parseInt` and `||` fallback)
 
-- [ ] T040 [P] [US2] **Test first**: write `backend-dotnet/TodoX.Tests/Unit/PaginationTests.cs` for `Pagination.ParsePage(string?)`, `Pagination.ParseLimit(string?)`, `Pagination.TotalPages(int totalCount, int limit)`, and `Pagination.Skip(int page, int limit)`. The rules mirror `Math.max(1, parseInt(page) || 1)` and `Math.min(50, Math.max(1, parseInt(limit) || 5))`:
+- [X] T040 [P] [US2] **Test first**: write `backend-dotnet/TodoX.Tests/Unit/PaginationTests.cs` for `Pagination.ParsePage(string?)`, `Pagination.ParseLimit(string?)`, `Pagination.TotalPages(int totalCount, int limit)`, and `Pagination.Skip(int page, int limit)`. The rules mirror `Math.max(1, parseInt(page) || 1)` and `Math.min(50, Math.max(1, parseInt(limit) || 5))`:
   - `Page_Defaults_And_MinClamp`: `null`, `""`, `"abc"`, `"0"`, `"-5"` give 1; `"3"` gives 3; `"2abc"` gives 2 and `" 4"` gives 4 (parseInt reads the leading integer); `"1.9"` gives 1.
   - `Page_AboveTotal_NotClamped`: `"9999"` gives 9999.
   - `Limit_Clamped_To_Range`: `null` and `"abc"` give 5; `"0"` gives **5** (preserved quirk DF-05, `docs/api-contract.md` §7: JS `0 || 5`); `"-3"` gives 1; `"1000"` gives 50; `"51"` gives 50; `"50"` gives 50; `"7"` gives 7.
