@@ -264,7 +264,7 @@ description: "Task list for the .NET backend rewrite of todoX"
   - `All_ReturnsNullStartDate`: theory over `"all"`, `null`, `""`, `"foo"`, `"weeks"`, `"TODAY"` (case-sensitive); each returns `null`.
 
   Returned values are UTC `DateTime`. Add a stub `backend-dotnet/TodoX.Api/Infrastructure/DateRangeCalculator.cs` (constructor `(TimeProvider, TimeZoneInfo)`, method `DateTime? GetStartDate(string? dateQuery)`, static `TimeZoneInfo ResolveTimeZone(string? tzEnv)`) that throws. The tests must run red.
-- [ ] T037 [US2] Implement `backend-dotnet/TodoX.Api/Infrastructure/DateRangeCalculator.cs`: convert now to the zone's local time; `today` is local midnight; `week` is local midnight minus `((int)DayOfWeek + 6) % 7` days; `month` is day 1 local midnight; convert back to UTC. Register it in `backend-dotnet/TodoX.Api/Program.cs`: `TimeZoneInfo` singleton from `ResolveTimeZone(Environment.GetEnvironmentVariable("TZ"))`, resolved once at startup, plus `DateRangeCalculator` as a singleton. T036 turns green. Depends on T036.
+- [X] T037 [US2] Implement `backend-dotnet/TodoX.Api/Infrastructure/DateRangeCalculator.cs`: convert now to the zone's local time; `today` is local midnight; `week` is local midnight minus `((int)DayOfWeek + 6) % 7` days; `month` is day 1 local midnight; convert back to UTC. Register it in `backend-dotnet/TodoX.Api/Program.cs`: `TimeZoneInfo` singleton from `ResolveTimeZone(Environment.GetEnvironmentVariable("TZ"))`, resolved once at startup, plus `DateRangeCalculator` as a singleton. T036 turns green. Depends on T036.
 
 ### Status filter mapping (api-contract §4.2, FR-010)
 

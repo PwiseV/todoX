@@ -19,6 +19,9 @@ builder.Services.AddControllers()
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("TodoX")));
 builder.Services.AddSingleton(TimeProvider.System);
+// FR-014: resolved once at startup.
+builder.Services.AddSingleton(DateRangeCalculator.ResolveTimeZone(Environment.GetEnvironmentVariable("TZ")));
+builder.Services.AddSingleton<DateRangeCalculator>();
 builder.Services.AddScoped<ITaskService, TaskService>();
 
 builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
