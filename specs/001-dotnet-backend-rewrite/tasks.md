@@ -293,7 +293,7 @@ description: "Task list for the .NET backend rewrite of todoX"
 ### GET /api/tasks
 
 - [X] T042 [P] [US2] Create `backend-dotnet/TodoX.Api/DTOs/TaskListResponseDto.cs` with `tasks` (`TaskResponseDto[]`) and the ints `activeCount`, `completeCount`, `totalCount`, `totalPages`, `page`, `limit`, in that order (contracts/tasks-api.md).
-- [ ] T043 [US2] **Test first**: write `backend-dotnet/TodoX.Tests/Integration/TasksControllerTests.List.cs` (partial class). Seed oldest first with a forward-only clock: tasks at `2026-08-15T03:00Z` (last month), `2026-09-10T03:00Z` (this month, earlier week), `2026-09-28T02:00Z` (this week, Monday), and `2026-09-30T01:00Z` / `2026-09-30T02:00Z` (today). Complete some of them via PUT, then set now to `2026-09-30T05:00Z`. Tests:
+- [X] T043 [US2] **Test first**: write `backend-dotnet/TodoX.Tests/Integration/TasksControllerTests.List.cs` (partial class). Seed oldest first with a forward-only clock: tasks at `2026-08-15T03:00Z` (last month), `2026-09-10T03:00Z` (this month, earlier week), `2026-09-28T02:00Z` (this week, Monday), and `2026-09-30T01:00Z` / `2026-09-30T02:00Z` (today). Complete some of them via PUT, then set now to `2026-09-30T05:00Z`. Tests:
   - `GetTasks_DateQuery_Today`, `GetTasks_DateQuery_Week`, `GetTasks_DateQuery_Month`: each returns exactly the expected `_id` set.
   - `GetTasks_DateQuery_All`: `all`, absent, and `foo` return everything.
   - `GetTasks_Filter_Active`, `GetTasks_Filter_Completed`
