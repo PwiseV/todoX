@@ -288,7 +288,7 @@ description: "Task list for the .NET backend rewrite of todoX"
   - `Skip_IsPageMinusOneTimesLimit`: (3,5) gives 10.
 
   Add a stub `backend-dotnet/TodoX.Api/Services/Pagination.cs` that throws. The tests must run red.
-- [ ] T041 [US2] Implement `backend-dotnet/TodoX.Api/Services/Pagination.cs` with a leading-integer parser (optional leading whitespace and sign, then digits; stop at the first non-digit; no digits means "NaN", which falls back). T040 turns green. Depends on T040.
+- [X] T041 [US2] Implement `backend-dotnet/TodoX.Api/Services/Pagination.cs` with a leading-integer parser (optional leading whitespace and sign, then digits; stop at the first non-digit; no digits means "NaN", which falls back). T040 turns green. Depends on T040.
 
 ### GET /api/tasks
 
