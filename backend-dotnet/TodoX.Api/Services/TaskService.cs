@@ -1,11 +1,41 @@
+using Microsoft.EntityFrameworkCore;
 using TodoX.Api.Data;
 using TodoX.Api.Entities;
 using TodoX.Api.Infrastructure;
 
 namespace TodoX.Api.Services;
 
-public class TaskService(AppDbContext db, TimeProvider timeProvider) : ITaskService
+public class TaskService(AppDbContext db, TimeProvider timeProvider, DateRangeCalculator dateRange) : ITaskService
 {
+    public async Task<TaskListResult> GetTasksAsync(string? dateQuery, string? filter, string? page, string? limit)
+    {
+        var start = dateRange.GetStartDate(dateQuery);
+        var status = StatusFilter.ToStatus(filter);
+        var pageNumber = Pagination.ParsePage(page);
+        var pageSize = Pagination.ParseLimit(limit);
+
+        // No end bound: everything from the start date on matches (api-contract §4.1).
+        IQueryable<TaskEntity> inRange = db.Tasks.AsNoTracking();
+        if (start is { } from)
+        {
+            inRange = inRange.Where(t => t.CreatedAt >= from);
+        }
+
+        var filtered = status is null ? inRange : inRange.Where(t => t.Status == status);
+
+        // Awaited one at a time: a DbContext cannot run queries concurrently (research.md R-07).
+        var tasks = await filtered
+            .OrderBy(t => t.Status == "active" ? 0 : 1)
+            .ThenByDescending(t => t.CreatedAt)
+            .Skip(Pagination.Skip(pageNumber, pageSize))
+            .Take(pageSize)
+            .ToListAsync();
+        var totalCount = await filtered.CountAsync();
+
+        // US3: activeCount/completeCount are placeholders until the count queries land.
+        return new TaskListResult(tasks, totalCount, 0, 0, Pagination.TotalPages(totalCount, pageSize), pageNumber, pageSize);
+    }
+
     public async Task<TaskEntity> CreateAsync(string? title)
     {
         var now = Now();

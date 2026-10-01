@@ -1,6 +1,8 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Time.Testing;
+using TodoX.Api.Data;
 using TodoX.Api.Entities;
+using TodoX.Api.Infrastructure;
 using TodoX.Api.Services;
 using TodoX.Tests.Integration.Fixtures;
 
@@ -27,7 +29,7 @@ public class TaskServiceTests(PostgresContainerFixture db) : IAsyncLifetime
     public async Task Create_TrimsTitle_BeforeSave()
     {
         await using var context = db.CreateDbContext();
-        var service = new TaskService(context, _clock);
+        var service = NewService(context);
 
         var created = await service.CreateAsync("  x  ");
 
@@ -40,7 +42,7 @@ public class TaskServiceTests(PostgresContainerFixture db) : IAsyncLifetime
     {
         var seeded = await SeedAsync("original");
         await using var context = db.CreateDbContext();
-        var service = new TaskService(context, _clock);
+        var service = NewService(context);
 
         var updated = await service.UpdateAsync(seeded.Id.ToString(), new TaskUpdate("  y  ", null, false, null));
 
@@ -53,7 +55,7 @@ public class TaskServiceTests(PostgresContainerFixture db) : IAsyncLifetime
     public async Task Create_SetsDefaults()
     {
         await using var context = db.CreateDbContext();
-        var service = new TaskService(context, _clock);
+        var service = NewService(context);
 
         var created = await service.CreateAsync("defaults");
         var stored = await ReadAsync(created.Id);
@@ -65,6 +67,9 @@ public class TaskServiceTests(PostgresContainerFixture db) : IAsyncLifetime
         Assert.Equal(DateTimeKind.Utc, stored.CreatedAt.Kind);
         Assert.Equal(DateTimeKind.Utc, stored.UpdatedAt.Kind);
     }
+
+    private TaskService NewService(AppDbContext context) =>
+        new(context, _clock, new DateRangeCalculator(_clock, DateRangeCalculator.ResolveTimeZone(null)));
 
     private async Task<TaskEntity> SeedAsync(string title)
     {

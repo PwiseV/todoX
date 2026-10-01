@@ -310,7 +310,7 @@ description: "Task list for the .NET backend rewrite of todoX"
   - `GetTasks_ResponseShape`: all seven top-level keys are present.
 
   The tests must run red. Depends on T037, T039, T041, T042.
-- [ ] T044 [US2] Add `Task<TaskListResult> GetTasksAsync(string? dateQuery, string? filter, string? page, string? limit)` to `backend-dotnet/TodoX.Api/Services/ITaskService.cs` and implement it in `backend-dotnet/TodoX.Api/Services/TaskService.cs` (inject `DateRangeCalculator`). Define `record TaskListResult(List<TaskEntity> Tasks, int TotalCount, int ActiveCount, int CompleteCount, int TotalPages, int Page, int Limit)` in `backend-dotnet/TodoX.Api/Services/ITaskService.cs`. Queries follow research.md R-07 and are **awaited sequentially**, never with `Task.WhenAll`:
+- [X] T044 [US2] Add `Task<TaskListResult> GetTasksAsync(string? dateQuery, string? filter, string? page, string? limit)` to `backend-dotnet/TodoX.Api/Services/ITaskService.cs` and implement it in `backend-dotnet/TodoX.Api/Services/TaskService.cs` (inject `DateRangeCalculator`). Define `record TaskListResult(List<TaskEntity> Tasks, int TotalCount, int ActiveCount, int CompleteCount, int TotalPages, int Page, int Limit)` in `backend-dotnet/TodoX.Api/Services/ITaskService.cs`. Queries follow research.md R-07 and are **awaited sequentially**, never with `Task.WhenAll`:
   - `base` = `Tasks` filtered by `CreatedAt >= start` when the start date is non-null; there is no end bound
   - `filtered` = `base` filtered by `Status == mapped` when the mapped status is non-null
   - page = `filtered.OrderBy(t => t.Status == "active" ? 0 : 1).ThenByDescending(t => t.CreatedAt).Skip(skip).Take(limit)`
