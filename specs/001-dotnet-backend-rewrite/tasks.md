@@ -337,7 +337,7 @@ description: "Task list for the .NET backend rewrite of todoX"
   - `GetTasks_Counts_ZeroInOneRange_NonZeroInAnother`: seed active and complete tasks only outside "today". Assert `activeCount == 0` and `completeCount == 0` for `dateQuery=today`, and both non-zero for `dateQuery=all`.
 
   The tests must run red, because T044 returns the placeholder `0`. Depends on T045.
-- [ ] T047 [US3] Replace the placeholder in `backend-dotnet/TodoX.Api/Services/TaskService.cs` `GetTasksAsync` with `activeCount = await base.CountAsync(t => t.Status == "active")` and `completeCount = await base.CountAsync(t => t.Status == "complete")`. Both run on the **date-filtered base**, not `filtered`, awaited sequentially after the page and total queries. T046 turns green. Depends on T046.
+- [X] T047 [US3] Replace the placeholder in `backend-dotnet/TodoX.Api/Services/TaskService.cs` `GetTasksAsync` with `activeCount = await base.CountAsync(t => t.Status == "active")` and `completeCount = await base.CountAsync(t => t.Status == "complete")`. Both run on the **date-filtered base**, not `filtered`, awaited sequentially after the page and total queries. T046 turns green. Depends on T046.
 
 **Checkpoint**: All three stories are complete, and every Principle IV named test from the plan.md Test Plan exists and passes.
 

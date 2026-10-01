@@ -31,9 +31,12 @@ public class TaskService(AppDbContext db, TimeProvider timeProvider, DateRangeCa
             .Take(pageSize)
             .ToListAsync();
         var totalCount = await filtered.CountAsync();
+        // Badge counts use the date range only, never the status filter, so they stay put when the tab changes.
+        var activeCount = await inRange.CountAsync(t => t.Status == "active");
+        var completeCount = await inRange.CountAsync(t => t.Status == "complete");
 
-        // US3: activeCount/completeCount are placeholders until the count queries land.
-        return new TaskListResult(tasks, totalCount, 0, 0, Pagination.TotalPages(totalCount, pageSize), pageNumber, pageSize);
+        return new TaskListResult(
+            tasks, totalCount, activeCount, completeCount, Pagination.TotalPages(totalCount, pageSize), pageNumber, pageSize);
     }
 
     public async Task<TaskEntity> CreateAsync(string? title)
