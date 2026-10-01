@@ -330,7 +330,7 @@ description: "Task list for the .NET backend rewrite of todoX"
 
 **Independent Test**: `TasksControllerTests.Counts.cs` passes. With 3 active and 5 complete tasks in range, switching `filter` never changes the badges.
 
-- [ ] T046 [US3] **Test first**: write `backend-dotnet/TodoX.Tests/Integration/TasksControllerTests.Counts.cs` (partial class), seeding with the forward-only clock:
+- [X] T046 [US3] **Test first**: write `backend-dotnet/TodoX.Tests/Integration/TasksControllerTests.Counts.cs` (partial class), seeding with the forward-only clock:
   - `GetTasks_Counts_IndependentOfFilter`: 3 active and 5 complete today. For `filter` in `all`, `active`, `completed`, `foo`, every response has `activeCount == 3` and `completeCount == 5`.
   - `GetTasks_Counts_RespectDateQuery`: tasks older than today are excluded from the counts under `dateQuery=today` and included under `dateQuery=all`.
   - `GetTasks_Counts_AllRange_IncludesEverything`
