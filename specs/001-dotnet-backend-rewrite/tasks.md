@@ -252,7 +252,7 @@ description: "Task list for the .NET backend rewrite of todoX"
 
 ### Date range calculator (api-contract §4.1, FR-009, FR-014)
 
-- [ ] T036 [P] [US2] **Test first**: write `backend-dotnet/TodoX.Tests/Unit/DateRangeCalculatorTests.cs`, using `FakeTimeProvider` and the zone from `DateRangeCalculator.ResolveTimeZone(null)`:
+- [X] T036 [P] [US2] **Test first**: write `backend-dotnet/TodoX.Tests/Unit/DateRangeCalculatorTests.cs`, using `FakeTimeProvider` and the zone from `DateRangeCalculator.ResolveTimeZone(null)`:
   - `TimeZone_AsiaHoChiMinh_Resolves`: `FindSystemTimeZoneById("Asia/Ho_Chi_Minh")` does not throw. This runs first. Environment sanity check - exempt from the red/Constitution IV requirement (it verifies runtime tzdata, not project code).
   - `ResolveTimeZone_UsesTzEnvValue_WhenSet`: `ResolveTimeZone("UTC")` returns the UTC zone.
   - `ResolveTimeZone_DefaultsToHcm_WhenNullOrEmpty`
