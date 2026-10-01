@@ -268,7 +268,7 @@ description: "Task list for the .NET backend rewrite of todoX"
 
 ### Status filter mapping (api-contract §4.2, FR-010)
 
-- [ ] T038 [P] [US2] **Test first**: write `backend-dotnet/TodoX.Tests/Unit/StatusMappingTests.cs` for `StatusFilter.ToStatus(string? filter)`, which returns `string?`:
+- [X] T038 [P] [US2] **Test first**: write `backend-dotnet/TodoX.Tests/Unit/StatusMappingTests.cs` for `StatusFilter.ToStatus(string? filter)`, which returns `string?`:
   - `Active_MapsToActive`: `"active"` gives `"active"`
   - `Completed_MapsToComplete`: `"completed"` gives `"complete"`
   - `All_ReturnsNoStatusCondition`: `"all"`, `null`, `""`, and `"foo"` give `null`
