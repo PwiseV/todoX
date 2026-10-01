@@ -276,7 +276,7 @@ description: "Task list for the .NET backend rewrite of todoX"
   - `CaseSensitive`: `"Active"` and `"COMPLETED"` give `null`
 
   Add a stub `backend-dotnet/TodoX.Api/Services/StatusFilter.cs` that throws. The tests must run red.
-- [ ] T039 [US2] Implement `backend-dotnet/TodoX.Api/Services/StatusFilter.cs`. T038 turns green. Depends on T038.
+- [X] T039 [US2] Implement `backend-dotnet/TodoX.Api/Services/StatusFilter.cs`. T038 turns green. Depends on T038.
 
 ### Pagination (api-contract §4.3, FR-011; parity with JS `parseInt` and `||` fallback)
 
