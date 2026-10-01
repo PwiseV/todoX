@@ -14,6 +14,28 @@ namespace TodoX.Api.Controllers;
 [Route("api/tasks")]
 public class TasksController(ITaskService taskService) : ControllerBase
 {
+    // Every query value binds as a string: an int parameter would make [ApiController] return 400
+    // for page=abc, while the contract parses it like JS parseInt and falls back to the default.
+    [HttpGet]
+    public async Task<IActionResult> List(
+        [FromQuery] string? dateQuery,
+        [FromQuery] string? filter,
+        [FromQuery] string? page,
+        [FromQuery] string? limit)
+    {
+        var result = await taskService.GetTasksAsync(dateQuery, filter, page, limit);
+        return Ok(new TaskListResponseDto
+        {
+            Tasks = result.Tasks.Select(TaskResponseDto.FromEntity).ToArray(),
+            ActiveCount = result.ActiveCount,
+            CompleteCount = result.CompleteCount,
+            TotalCount = result.TotalCount,
+            TotalPages = result.TotalPages,
+            Page = result.Page,
+            Limit = result.Limit,
+        });
+    }
+
     [HttpPost]
     public async Task<IActionResult> Create([FromBody] CreateTaskDto dto)
     {

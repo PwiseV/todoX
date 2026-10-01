@@ -318,7 +318,7 @@ description: "Task list for the .NET backend rewrite of todoX"
   - `totalPages = Pagination.TotalPages(...)`
 
   For now set `activeCount` and `completeCount` to the placeholder `0` with a `// US3` comment. Depends on T043.
-- [ ] T045 [US2] Add `GET` to `backend-dotnet/TodoX.Api/Controllers/TasksController.cs`, binding `[FromQuery] string? dateQuery, string? filter, string? page, string? limit` as **strings**. Typed `int` binding would make `[ApiController]` return 400 for `page=abc`. Map the result to `TaskListResponseDto` and return 200. T043 turns green. Depends on T044.
+- [X] T045 [US2] Add `GET` to `backend-dotnet/TodoX.Api/Controllers/TasksController.cs`, binding `[FromQuery] string? dateQuery, string? filter, string? page, string? limit` as **strings**. Typed `int` binding would make `[ApiController]` return 400 for `page=abc`. Map the result to `TaskListResponseDto` and return 200. T043 turns green. Depends on T044.
 
 **Checkpoint**: US1 and US2 tests pass. The frontend can list, filter, and paginate, but the badges show 0 until US3.
 
